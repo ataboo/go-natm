@@ -1,3 +1,4 @@
 go-natm
 .vscode
 .env
+sqlboiler.toml

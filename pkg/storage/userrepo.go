@@ -36,8 +36,8 @@ func (r *UserRepository) FindByEmail(email string) *models.User {
 }
 
 func (r *UserRepository) CreateOrUpdate(user *models.User) {
-	if user.Id == uuid.Nil {
-		user.Id = uuid.New()
+	if user.ID == "" {
+		user.ID = uuid.New().String()
 		// insert
 	} else {
 		// update

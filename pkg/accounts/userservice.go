@@ -24,7 +24,7 @@ func (s *memUserService) GetOrCreateUser(email string, name string) *models.User
 
 	id := uuid.New()
 	s.users[id] = &models.User{
-		Id:    id,
+		ID:    id.String(),
 		Email: email,
 		Name:  name,
 	}

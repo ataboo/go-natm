@@ -1,0 +1,7 @@
+[psql]
+dbname = "gonatm"
+host = "localhost"
+port = 5432
+user = ""
+pass = ""
+blacklist = ["migrations"]

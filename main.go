@@ -5,12 +5,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ataboo/go-natm/v4/pkg/database"
 	"github.com/ataboo/go-natm/v4/pkg/oauth"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/dig"
 )
+
+// migrate -source file://migrations -database postgres://username:pw@localhost:5432/gonatm up
+// sqlboiler psql -o pkg/models -p models
 
 // func serveWs(w http.ResponseWriter, r *http.Request) {
 // 	ws, err := websocket.Upgrade(w, r)
@@ -40,6 +44,10 @@ func main() {
 
 	err = container.Invoke(func(google *oauth.GoogleOAuthService, jwtService *oauth.JWTRouteService, db *sql.DB) {
 		defer db.Close()
+		err := database.MigrateDB(db)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		router.GET("/", func(c *gin.Context) {
 			c.String(http.StatusOK, "Hello world!")
@@ -67,7 +75,7 @@ func main() {
 func buildContainer() *dig.Container {
 	container := dig.New()
 
-	container.Provide(storage.NewSqlDB)
+	container.Provide(database.NewSqlDB)
 	container.Provide(oauth.NewJWTFactory)
 	container.Provide(storage.NewUserRepository)
 	container.Provide(oauth.LoadJWTConfig)

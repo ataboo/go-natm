@@ -94,8 +94,8 @@ func (h *GoogleOAuthService) handleAuthCallback(c *gin.Context) {
 		}
 	}
 
-	user.JWTToken = h.jwtFactory.CreateAccessToken(user.Id.String())
-	user.RefreshToken = h.jwtFactory.CreateRefreshToken()
+	user.AccessToken.String = h.jwtFactory.CreateAccessToken(user.ID)
+	user.RefeshToken.String = h.jwtFactory.CreateRefreshToken()
 
 	h.userRepo.CreateOrUpdate(user)
 
