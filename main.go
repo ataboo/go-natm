@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 
-	"github.com/ataboo/go-natm/v4/pkg/jwtauth"
+	"github.com/ataboo/go-natm/v4/pkg/oauth"
+	"github.com/ataboo/go-natm/v4/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/dig"
 )
 
 // func serveWs(w http.ResponseWriter, r *http.Request) {
@@ -36,45 +36,43 @@ func main() {
 	}
 
 	router := gin.Default()
+	container := buildContainer()
 
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Hello world!")
-	})
+	err = container.Invoke(func(google *oauth.GoogleOAuthService, jwtService *oauth.JWTRouteService, db *sql.DB) {
+		defer db.Close()
 
-	router.GET("/test-token", func(c *gin.Context) {
-		testToken, err := jwtauth.CreateJWTToken(loadJWTConfig(), "test-user-id")
-		if err != nil {
-			panic(err)
+		router.GET("/", func(c *gin.Context) {
+			c.String(http.StatusOK, "Hello world!")
+		})
+
+		api := router.Group("/api", jwtService.AuthJWTMiddleware())
+		{
+			api.GET("/", func(c *gin.Context) {
+				userID, ok := c.Get("acting_user_id")
+				if !ok {
+					panic("UserID not in context!")
+				}
+
+				c.String(http.StatusOK, "Hello user: "+userID.(string))
+			})
 		}
 
-		c.String(http.StatusOK, testToken)
+		google.RegisterGoogleRoutes(router)
+		jwtService.RegisterJWTRoutes(router)
+
+		router.Run(":8080")
 	})
-
-	api := router.Group("/api", jwtauth.AuthJWT(loadJWTConfig()))
-	{
-		api.GET("/", func(c *gin.Context) {
-			userID, ok := c.Get("acting_user_id")
-			if !ok {
-				panic("UserID not in context!")
-			}
-
-			c.String(http.StatusOK, "Hello user: "+userID.(string))
-		})
-	}
-
-	fmt.Println("Started server on :8080")
-
-	router.Run(":8080")
 }
 
-func loadJWTConfig() jwtauth.JWTAuthConfig {
-	expirationMins, _ := strconv.Atoi(os.Getenv("JWT_EXPIRATION"))
+func buildContainer() *dig.Container {
+	container := dig.New()
 
-	return jwtauth.JWTAuthConfig{
-		Audience:       os.Getenv("JWT_AUDIENCE"),
-		ExpirationMins: expirationMins,
-		Issuer:         os.Getenv("JWT_ISSUER"),
-		Secret:         os.Getenv("JWT_SECRET"),
-		Subject:        os.Getenv("JWT_SUBJECT"),
-	}
+	container.Provide(storage.NewSqlDB)
+	container.Provide(oauth.NewJWTFactory)
+	container.Provide(storage.NewUserRepository)
+	container.Provide(oauth.LoadJWTConfig)
+	container.Provide(oauth.NewGooglOAuthHandler)
+	container.Provide(oauth.NewJWTRouteService)
+
+	return container
 }

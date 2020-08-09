@@ -9,4 +9,7 @@ let sendMsg = msg => {
     socket.send(msg);
 }
 
-export {connect, sendMsg};
+let googleLoginPath = "http://localhost:8080/auth/google/login"
+
+
+export {connect, sendMsg, googleLoginPath};
