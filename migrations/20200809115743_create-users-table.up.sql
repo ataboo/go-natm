@@ -4,5 +4,7 @@ CREATE TABLE users (
    email VARCHAR (300) UNIQUE NOT NULL,
    access_token VARCHAR(2048),
    refesh_token VARCHAR(2048),
-   active BOOLEAN
+   active BOOLEAN NOT NULL,
+   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

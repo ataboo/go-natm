@@ -3,7 +3,7 @@ import "./Header.scss";
 
 const Header = () => (
     <div className="header">
-        <h2>Realtime Chat app</h2>
+        <h2>Not Another Task Manager</h2>
     </div>
 );
 

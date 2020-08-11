@@ -12,6 +12,7 @@ import (
 	"github.com/ataboo/go-natm/v4/pkg/models"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	oauthapi "google.golang.org/api/oauth2/v2"
@@ -33,8 +34,8 @@ func NewGooglOAuthHandler(userRepo *storage.UserRepository, jwtFactory *JWTFacto
 	return &handler
 }
 
-func (h *GoogleOAuthService) RegisterGoogleRoutes(e *gin.Engine) {
-	g := e.Group("auth/google")
+func (h *GoogleOAuthService) RegisterGoogleRoutes(parent *gin.RouterGroup) {
+	g := parent.Group("/google/")
 	{
 		g.GET("/", h.handleAuthGet)
 		g.GET("/callback", h.handleAuthCallback)
@@ -87,19 +88,30 @@ func (h *GoogleOAuthService) handleAuthCallback(c *gin.Context) {
 	fmt.Println("Name: " + userInfo.Name)
 
 	user := h.userRepo.FindByEmail(userInfo.Email)
-	if user == nil {
+	creating := user == nil
+	if creating {
 		user = &models.User{
+			ID:    uuid.New().String(),
 			Email: userInfo.Email,
 			Name:  userInfo.Name,
 		}
+
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 	}
 
-	user.AccessToken.String = h.jwtFactory.CreateAccessToken(user.ID)
-	user.RefeshToken.String = h.jwtFactory.CreateRefreshToken()
+	if creating {
+		h.userRepo.Create(user)
+	} else {
+		h.userRepo.Update(user)
+	}
 
-	h.userRepo.CreateOrUpdate(user)
+	accessToken := h.jwtFactory.CreateAccessToken(user.ID)
+	c.SetCookie("jwt-token", accessToken, h.jwtFactory.config.IssueExpMins*60, "", "", true, true)
 
-	c.JSON(http.StatusOK, map[string]string{"Name": userInfo.Name, "Email": userInfo.Email})
+	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
 }
 
 func loadOAuthConfig() *oauth2.Config {

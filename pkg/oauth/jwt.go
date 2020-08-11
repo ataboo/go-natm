@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/dgrijalva/jwt-go/request"
 	"github.com/gin-gonic/gin"
 )
 
@@ -84,37 +83,39 @@ func NewJWTRouteService(config *JWTAuthConfig, jwtFactory *JWTFactory) *JWTRoute
 	return &service
 }
 
-func (s *JWTRouteService) RegisterJWTRoutes(e *gin.Engine) {
-	g := e.Group("/auth/jwt")
+func (s *JWTRouteService) RegisterJWTRoutes(parent *gin.RouterGroup) {
+	g := parent.Group("/jwt")
 	{
-		g.POST("/refresh", s.handleJWTRefresh)
-		g.POST("/logout", s.handleJWTLogout)
+		g.POST("/refresh/", s.handleJWTRefresh)
 	}
 }
 
 func (s *JWTRouteService) handleJWTRefresh(e *gin.Context) {
-	e.String(http.StatusForbidden, "Todoo")
-}
-
-func (s *JWTRouteService) handleJWTLogout(e *gin.Context) {
-	e.String(http.StatusForbidden, "logout TODOO")
+	e.String(http.StatusForbidden, "Todo")
 }
 
 func (s *JWTRouteService) AuthJWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token, err := request.ParseFromRequest(c.Request, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
-			b := ([]byte(s.config.Secret))
-			return b, nil
-		})
-
+		strToken, err := c.Cookie("jwt-token")
 		if err != nil {
-			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("failed to parse token"))
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
+		token, err := jwt.Parse(strToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(s.config.Secret), nil
+		})
+		if err != nil {
+			ClearJWTCookie(c)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !claimsAreValid(*s.config, claims) {
+			ClearJWTCookie(c)
 			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("claims invalid"))
+			return
 		}
 
 		c.Set("acting_user_id", claims["jti"].(string))
@@ -149,4 +150,8 @@ func LoadJWTConfig() *JWTAuthConfig {
 		Secret:         os.Getenv("JWT_SECRET"),
 		Subject:        os.Getenv("JWT_SUBJECT"),
 	}
+}
+
+func ClearJWTCookie(c *gin.Context) {
+	c.SetCookie("jwt-token", "", 0, "", "", true, true)
 }
