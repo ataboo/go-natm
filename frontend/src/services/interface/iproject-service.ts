@@ -1,4 +1,5 @@
 import { Project } from "../../models/project";
+import { StatusCreate } from "../../models/status";
 
 export interface IProjectService {
     swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean
@@ -12,4 +13,10 @@ export interface IProjectService {
     saveProject(project: Project): Promise<any>;
 
     emptyProject(): Project;
+
+    setActiveTaskId(id: string): Promise<boolean>;
+
+    getActiveTaskId(): Promise<string>;
+
+    createTaskStatus(data: StatusCreate): Promise<boolean>;
 }

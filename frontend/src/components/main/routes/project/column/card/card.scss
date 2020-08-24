@@ -1,7 +1,65 @@
 .drag-card {
-    border: dashed 1px black;
-    padding: 1rem;
-    margin: 1rem;
-    background-color: lightblue;
+    margin: .5rem;
+    background-color: #ffffff;
     cursor: grab;
+    box-shadow: rgba(0, 0, 0, 0.125) .05rem .1rem;
+    border-radius: .25rem;
+    border: solid #bbbbbb 1px;
+}
+
+.task-title {
+    margin-left: .5rem;
+    align-self: center;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.drag-card-header {
+    display: flex;
+    justify-content: space-between;
+    min-height: 1rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.card-body-group {
+    display: flex;
+    justify-content: space-between;
+    border-radius: 0 0 0.25rem 0.25rem;
+    min-height: 2.5rem;
+}
+
+.active-task-card {
+    background-color: rgb(193, 255, 234);
+}
+
+.timing-indicator {
+    font-size: small;
+    font-weight: bold;
+    align-self: flex-end;
+    padding: .5rem;
+}
+
+.assignee-link {
+    padding-left: .5rem;
+    align-self: center;
+}
+
+.card-btn-group {
+    display: flex;
+    background-color: #FFFFFF;
+    border-radius: 0 0.25rem 0 0;
+    box-shadow: rgba(0, 0, 0, 0.315) 0 0.05rem 0.05rem;
+
+    .card-btn-divider {
+        border-left: rgba(0, 0, 0, 0.25) 1px solid;
+        min-height: 1rem;
+    }
+
+    button {
+        &:focus {
+            box-shadow: none !important;
+        }
+    }
 }

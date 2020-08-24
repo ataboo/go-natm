@@ -1,16 +1,16 @@
 import React from 'react';
 import './drop-zone.scss';
-import { Status } from '../../../../../../models/status';
+import { StatusRead } from '../../../../../../models/status';
+import { ICardActions } from '../../icardactions';
 
 type DropZoneProps = {
-    status: Status,
-    moveCardToStatus: (draggedCardId: string, statusId: string) => void,
-    draggedCardId: string
+    status: StatusRead,
+    cardActions: ICardActions
 };
 
-export function DropZone({status, moveCardToStatus, draggedCardId}: DropZoneProps) {
+export function DropZone({status, cardActions}: DropZoneProps) {
     const onDragOver = (event: React.DragEvent) => {
-        moveCardToStatus(draggedCardId, status.id)
+        cardActions.moveCardToStatus(cardActions.getDraggedCardId(), status.id)
     };
 
     return (

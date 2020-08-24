@@ -1,7 +1,18 @@
 .drag-column {
     width: 400px;
-    margin: 0.5rem;
     margin: 0.5rem 0.5rem auto 0.5rem;
     padding: 0.5rem;
-    background-color: #00FF00;
+    background-color: #00000008;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: .25rem;
+}
+
+.column-header-group {
+    display: flex;
+    justify-content: space-between;
+}
+
+.column-header-text {
+    font-size: 130%;
+    font-weight: bold;
 }

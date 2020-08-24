@@ -31,7 +31,6 @@ class Main extends Component<any, IMainState> {
     async tryAuthenticate(): Promise<User|null> {
         const user = await this.authService.tryAuthenticate();
 
-        console.dir(user);
         this.setState({
             user: user
         });
@@ -39,23 +38,27 @@ class Main extends Component<any, IMainState> {
         return user;
     }
     
-    async logout(): Promise<boolean> {
-        const success = await this.authService.logout();
-        this.setState({user: null});
+    logout() {
+        return async () => {
+            const success = await this.authService.logout();
+            this.setState({
+                user: null
+            });
 
-        return success;
+            return success;
+        };
     }
 
     render() {
         return (<AuthContext.Provider value={{
                     currentUser: this.state.user,
-                    logout: this.logout
+                    logout: this.logout()
                 }}>
                     <ServiceContext.Provider value={defaultServiceContext()} >
                         <Header/>
-                        <Container>
+                        <div className="main-body">
                             {this.state.user != null ? <Routes /> : <LoginPage/>}
-                        </Container>
+                        </div>
                     </ServiceContext.Provider>
                 </AuthContext.Provider>);
     }

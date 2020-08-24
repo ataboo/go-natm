@@ -2,44 +2,49 @@ import React from 'react';
 import './column.scss';
 import { Card } from './card';
 import { DropZone } from './drop-zone';
-import { Task } from '../../../../../models/task';
-import { Status } from '../../../../../models/status';
+import { TaskRead } from '../../../../../models/task';
+import { StatusRead } from '../../../../../models/status';
+import { ICardActions } from '../icardactions';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
+import DropdownMenu from 'react-bootstrap/esm/DropdownMenu';
+import { Dot, ThreeDotsVertical } from 'react-bootstrap-icons';
 
 type ColumnProps = {
-    tasks: Task[],
-    status: Status,
-    moveCardToStatus: (draggedCardId: string, statusId: string) => void,
-    moveCards: (draggedCardId: string, droppedStatusId: string, droppedOrdinal: number) => void,
-    draggedCardId: string,
-    setDraggedCardId: (draggedCardId: string) => void,
-    onDrop: () => void
+    tasks: TaskRead[],
+    status: StatusRead,
+    cardActions: ICardActions
 }
 
-export function Column({tasks, status, moveCards, moveCardToStatus, draggedCardId, setDraggedCardId, onDrop}: ColumnProps) {
+export function Column({tasks, status, cardActions}: ColumnProps) {
     const renderCards = () => {
         if (tasks.length === 0) {
-            return (<DropZone status={status} moveCardToStatus={moveCardToStatus} draggedCardId={draggedCardId}/>)
+            return (<DropZone status={status} cardActions={cardActions} />)
         }
     
-        return tasks.map(c => (<Card 
-            key={c.id} 
-            id={c.id} 
-            name={c.name} 
-            statusId={c.statusId} 
-            ordinal={c.ordinal} 
-            moveCards={moveCards}
-            draggedCardId={draggedCardId}
-            setDraggedCardId={setDraggedCardId}
-            onDrop={onDrop}
+        return tasks.map(t => (<Card 
+            key={t.id}
+            task={t}  
+            statusId={t.statusId}
+            cardActions={cardActions}
         />))    
     }
 
     return (
     <div 
         className="drag-column droppable" 
-        style={{background: 'blue'}}
     >
-        <div>{status.name} - {tasks.length}</div>
+        <div className="column-header-group">
+            <div className="column-header-text">{status.name}</div>
+            <Dropdown>
+                <Dropdown.Toggle variant="outline-default">
+                    <ThreeDotsVertical/>
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => console.log("tadaa")}>Do thing</Dropdown.Item>
+                </Dropdown.Menu>
+            </Dropdown>
+        </div>
         {renderCards()}
     </div>)
 };

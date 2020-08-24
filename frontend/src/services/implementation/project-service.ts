@@ -1,7 +1,19 @@
 import { Project } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
+import { StatusCreate } from "../../models/status";
 
 export default class ProjectService implements IProjectService {
+    createTaskStatus(data: StatusCreate): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+    async setActiveTaskId(id: string): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+    
+    async getActiveTaskId(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+
     swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
         let draggedTask = project.tasks.find(t => t.id === draggedTaskId);
         if (draggedTask === undefined) {
@@ -114,7 +126,8 @@ export default class ProjectService implements IProjectService {
             id: "",
             name: "",
             statuses: [],
-            tasks: []
+            tasks: [],
+            identifier: ""
         };
     }
 }

@@ -12,7 +12,9 @@ export function Routes() {
                 <Route exact path="/">
                     <ProjectList />
                 </Route>
-                <Route exact path="/project/:id" children={<Project />}/>
+                <Route exact path="/project/:id" render={(props) => {
+                    return (<Project id={props.match.params.id}/>)
+                }}/>
             </Switch>
         </Router>
     );
