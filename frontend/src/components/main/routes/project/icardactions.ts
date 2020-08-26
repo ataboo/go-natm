@@ -1,5 +1,5 @@
 import { StatusCreate, StatusRead } from "../../../../models/status";
-import { TaskCreate, TaskRead } from "../../../../models/task";
+import { TaskCreate, TaskRead, TaskUpdate } from "../../../../models/task";
 
 export interface ICardActions {
     moveCardToStatus(draggedId: string, statusId: string): void
@@ -18,7 +18,11 @@ export interface ICardActions {
 
     createStatus(createData: StatusCreate): Promise<StatusRead>
 
-    createTask(createData: TaskCreate): Promise<TaskRead>
+    createTask(createData: TaskCreate): Promise<boolean>
 
-    
+    archiveTask(taskId: string): Promise<boolean>
+
+    archiveStatus(statusId: string): Promise<boolean>
+
+    updateTask(updateData: TaskUpdate): Promise<boolean>
 }

@@ -7,6 +7,7 @@ import { ICardActions } from './icardactions';
 import { IProjectService } from '../../../../services/interface/iproject-service';
 import { AddStatus } from './addstatus/addstatus';
 import { StatusCreate } from '../../../../models/status';
+import { TaskUpdate } from '../../../../models/task';
 
 interface IProjectState {
   projectData: ProjectModel;
@@ -107,7 +108,8 @@ export class Project extends Component<ProjectProps, IProjectState> {
       moveCardToStatus: this.moveCardToStatus(),
       setDraggedCardId: (cardId: string) => this.setState({
         projectData: this.state.projectData,
-        draggedCardId: cardId
+        draggedCardId: cardId,
+        activeTaskId: this.state.activeTaskId
       }),
       swapCards: this.moveCards(),
       saveProject: () => this.context.projectService.saveProject(this.state.projectData),
@@ -115,10 +117,55 @@ export class Project extends Component<ProjectProps, IProjectState> {
         throw new Error("Not implemented");
       },
       createTask: async(createData) => {
-        throw new Error("Not implemented");
+        const success = await this.context.projectService.createTask(createData);
+        if (success) {
+          this.setState({
+            activeTaskId: this.state.activeTaskId,
+            draggedCardId: this.state.draggedCardId,
+            projectData: await this.context.projectService.getProject(this.state.projectData.id)
+          })
+        }
+
+        return success;
       },
       setActiveTaskId: this.setActiveTaskId(),
-      getActiveTaskId: () => this.state.activeTaskId
+      getActiveTaskId: () => this.state.activeTaskId,
+      archiveStatus: async(statusId: string) => {
+        const success = await this.context.projectService.archiveStatus(statusId);
+        if (success) {
+          this.setState({
+            activeTaskId: this.state.activeTaskId,
+            draggedCardId: this.state.draggedCardId,
+            projectData: await this.context.projectService.getProject(this.state.projectData.id)
+          })
+        }
+
+        return success;
+      },
+      archiveTask: async(taskId: string) => {
+        const success = await this.context.projectService.archiveTask(taskId);
+        if (success) {
+          this.setState({
+            activeTaskId: this.state.activeTaskId,
+            draggedCardId: this.state.draggedCardId,
+            projectData: await this.context.projectService.getProject(this.state.projectData.id)
+          });
+        }
+
+        return success;
+      },
+      updateTask: async(updateData: TaskUpdate) => {
+        const success = await this.context.projectService.updateTask(updateData);
+        if (success) {
+          this.setState({
+            activeTaskId: this.state.activeTaskId,
+            draggedCardId: this.state.draggedCardId,
+            projectData: await this.context.projectService.getProject(this.state.projectData.id)
+          });
+        }
+
+        return success;
+      }
     }
 
     return this.state.projectData.statuses.map((status, i) => (<Column 
@@ -135,7 +182,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
               <div className="col-container">
                 {this.renderColumns()}
                 <AddStatus createStatus={this.addStatus()}/>
-                {/* <div className="col-add-button"><button className="btn btn-primary">Add State</button></div> */}
               </div>
             </div>)
   }

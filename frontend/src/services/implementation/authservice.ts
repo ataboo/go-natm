@@ -19,7 +19,8 @@ export class AuthService implements IAuthService {
 
             return {
                 id: response.data.id ?? "Unset",
-                name: response.data.name ?? "Unset"
+                name: response.data.name ?? "Unset",
+                email: response.data.email ?? "Unset"
             };
         } catch (err) {
             if (err.response && err.response.status === 401) {

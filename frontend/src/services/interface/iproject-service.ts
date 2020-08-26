@@ -1,5 +1,6 @@
 import { Project } from "../../models/project";
 import { StatusCreate } from "../../models/status";
+import { TaskCreate, TaskUpdate } from "../../models/task";
 
 export interface IProjectService {
     swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean
@@ -19,4 +20,12 @@ export interface IProjectService {
     getActiveTaskId(): Promise<string>;
 
     createTaskStatus(data: StatusCreate): Promise<boolean>;
+
+    createTask(data: TaskCreate): Promise<boolean>;
+
+    archiveTask(taskId: string): Promise<boolean>;
+
+    archiveStatus(statusId: string): Promise<boolean>;
+    
+    updateTask(updateData: TaskUpdate): Promise<boolean> 
 }

@@ -49,11 +49,14 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
         return (<div className="timing-indicator">2hrs|4hrs</div>)
     }
 
+    const activeTaskId = cardActions.getActiveTaskId();
+
     const cardClassNames = classNames(
         'drag-card',
         'draggable',
         { 
-            'active-task-card': cardActions.getActiveTaskId() === task.id
+            'active-task-card': activeTaskId === task.id,
+            'innactive-task-card': activeTaskId && activeTaskId !== task.id
         }
     )
 
@@ -66,10 +69,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
                 style={{opacity: getOpacity(), userSelect: "none"}}
             >
                 <CardHeader 
-                    onClickActivate={() => cardActions.setActiveTaskId(task.id)} 
-                    onClickStop={() => cardActions.setActiveTaskId("")}
-                    onClickEdit={() => {console.log("clicked edit!")}} 
-                    cardActive={cardActions.getActiveTaskId() === task.id}
+                    cardActions={cardActions}
                     task={task}
                 />
                 <div className={"card-body-group"}>

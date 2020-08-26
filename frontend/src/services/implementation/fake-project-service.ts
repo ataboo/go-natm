@@ -6,6 +6,7 @@ import { TaskTiming } from "../../models/tasktiming";
 import moment from "moment";
 import { TaskType } from "../../enums";
 import { StatusCreate } from "../../models/status";
+import { TaskCreate, TaskUpdate } from "../../models/task";
 
 export class FakeProjectService implements IProjectService {
     cachedProjectData: Project
@@ -15,7 +16,8 @@ export class FakeProjectService implements IProjectService {
     constructor() {
         const assignedUser: User = {
             id: "1",
-            name: "Alex Raboud"
+            name: "Alex Raboud",
+            email: "doubar2001@gmail.com"
         }
 
         const timing1: TaskTiming = {
@@ -58,7 +60,8 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-1",
                     assignee: assignedUser,
                     timing: timing1,
-                    type: TaskType.Admin
+                    type: TaskType.Admin,
+                    description: "description"
                 },
                 {
                     id: "2",
@@ -68,7 +71,8 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-2",
                     assignee: assignedUser,
                     timing: timing2,
-                    type: TaskType.Admin
+                    type: TaskType.Admin,
+                    description: "description"
                 },
                 {
                     id: "3",
@@ -78,7 +82,8 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-3",
                     assignee: assignedUser,
                     timing: timing3,
-                    type: TaskType.Problem
+                    type: TaskType.Problem,
+                    description: "description"
                 },
                 {
                     id: "4",
@@ -88,7 +93,8 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-4",
                     assignee: assignedUser,
                     timing: timing1,
-                    type: TaskType.Task
+                    type: TaskType.Task,
+                    description: "description"
                 },
                 {
                     id: "5",
@@ -98,7 +104,8 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-5",
                     assignee: assignedUser,
                     timing: timing1,
-                    type: TaskType.Task
+                    type: TaskType.Task,
+                    description: "description"
                 },
                 {
                     id: "6",
@@ -108,10 +115,75 @@ export class FakeProjectService implements IProjectService {
                     identifier: "PRJ-6",
                     assignee: assignedUser,
                     timing: timing1,
-                    type: TaskType.Task
+                    type: TaskType.Task,
+                    description: "description"
                 }
             ]
         }
+    }
+
+    async updateTask(updateData: TaskUpdate): Promise<boolean> {
+        const task = this.cachedProjectData.tasks.find(t => t.id === updateData.id);
+        if (!task) {
+            return false;
+        }
+
+        if(updateData.assigneeEmail) {
+            task.assignee = {
+                email: updateData.assigneeEmail,
+                name: "Assigned User",
+                id: "23"
+            };
+        } else {
+            task.assignee = null;
+        }
+
+        task.description = updateData.description;
+        task.title = updateData.title;
+        task.type = updateData.type;
+
+        return true;
+    }
+
+    async archiveTask(taskId: string): Promise<boolean> {
+        this.cachedProjectData.tasks = this.cachedProjectData.tasks.filter(t => t.id !== taskId);
+
+        return true;
+    }
+
+    async archiveStatus(statusId: string): Promise<boolean> {
+        this.cachedProjectData.statuses = this.cachedProjectData.statuses.filter(s => s.id !== statusId);
+
+        if (this.cachedProjectData.statuses.length === 0) {
+            this.cachedProjectData.tasks = [];
+        } else {
+            this.cachedProjectData.tasks.filter(t => t.statusId === statusId).forEach(t => t.statusId = this.cachedProjectData.statuses[0].id);
+        }
+
+        return true;
+    }
+
+    async createTask(data: TaskCreate): Promise<boolean> {
+        const maxId = Math.max(...this.cachedProjectData.tasks.map(t => +t.id));
+        const maxOrdinal = Math.max(...this.cachedProjectData.tasks.map(t => t.ordinal));
+        const maxIdentifier = Math.max(...this.cachedProjectData.tasks.map(t => +(t.identifier.split('-')[1])));
+        
+        this.cachedProjectData.tasks.push({
+            assignee: null,
+            description: data.description,
+            identifier: 'PRJ-' + (maxIdentifier + 1).toString(),
+            id: (maxId + 1).toString(),
+            ordinal: maxOrdinal + 1,
+            statusId: data.statusId,
+            timing: {
+                current: moment.duration(0),
+                estimated: moment.duration(0)
+            },
+            title: data.title,
+            type: data.type
+        });
+
+        return true;
     }
     
     async createTaskStatus(data: StatusCreate): Promise<boolean> {

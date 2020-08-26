@@ -31,7 +31,11 @@
 }
 
 .active-task-card {
-    background-color: rgb(193, 255, 234);
+    background-color: white;
+}
+
+.innactive-task-card {
+    background-color: #ececec;
 }
 
 .timing-indicator {
@@ -61,5 +65,7 @@
         &:focus {
             box-shadow: none !important;
         }
+
+        margin: 0 !important;
     }
 }

@@ -17,6 +17,6 @@ export function DropZone({status, cardActions}: DropZoneProps) {
     <div className="col-drop-zone"
         onDragOver={onDragOver}
         >
-        {'Drop Zone Here'}
+        {'Drag Task Here'}
     </div>)
 }

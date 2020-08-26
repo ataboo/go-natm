@@ -2,12 +2,12 @@ import React from 'react';
 import './column.scss';
 import { Card } from './card';
 import { DropZone } from './drop-zone';
-import { TaskRead } from '../../../../../models/task';
+import { TaskRead, TaskCreate } from '../../../../../models/task';
 import { StatusRead } from '../../../../../models/status';
 import { ICardActions } from '../icardactions';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
-import DropdownMenu from 'react-bootstrap/esm/DropdownMenu';
-import { Dot, ThreeDotsVertical } from 'react-bootstrap-icons';
+import { Dropdown } from 'react-bootstrap';
+import { ThreeDotsVertical } from 'react-bootstrap-icons';
+import { AddTask } from './addtask';
 
 type ColumnProps = {
     tasks: TaskRead[],
@@ -21,18 +21,28 @@ export function Column({tasks, status, cardActions}: ColumnProps) {
             return (<DropZone status={status} cardActions={cardActions} />)
         }
     
-        return tasks.map(t => (<Card 
+        const cards = tasks.map(t => (<Card 
             key={t.id}
             task={t}  
             statusId={t.statusId}
             cardActions={cardActions}
-        />))    
+        />))
+
+        cards.push((<AddTask createTask={(data) => cardActions.createTask(data)} statusId={status.id} key="add-task" />));
+
+        return cards;
+    }
+
+    const archiveStatus = (event: React.MouseEvent) => {
+        if (!window.confirm("Are you sure you want to archive this status?")) {
+            return
+        }
+
+        cardActions.archiveStatus(status.id);
     }
 
     return (
-    <div 
-        className="drag-column droppable" 
-    >
+    <div className="drag-column">
         <div className="column-header-group">
             <div className="column-header-text">{status.name}</div>
             <Dropdown>
@@ -41,7 +51,7 @@ export function Column({tasks, status, cardActions}: ColumnProps) {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => console.log("tadaa")}>Do thing</Dropdown.Item>
+                    <Dropdown.Item onClick={archiveStatus}>Archive</Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
         </div>

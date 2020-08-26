@@ -1,11 +1,29 @@
 import { Project } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
+import { TaskCreate, TaskUpdate } from "../../models/task";
 
 export default class ProjectService implements IProjectService {
+    updateTask(updateData: TaskUpdate): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+    
+    archiveTask(taskId: string): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    archiveStatus(statusId: string): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    createTask(data: TaskCreate): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
     createTaskStatus(data: StatusCreate): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
+    
     async setActiveTaskId(id: string): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
