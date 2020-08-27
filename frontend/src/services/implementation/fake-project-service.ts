@@ -138,6 +138,8 @@ export class FakeProjectService implements IProjectService {
             task.assignee = null;
         }
 
+        task.timing.estimated = moment.duration(updateData.estimatedTime);
+
         task.description = updateData.description;
         task.title = updateData.title;
         task.type = updateData.type;
@@ -209,6 +211,7 @@ export class FakeProjectService implements IProjectService {
     async getActiveTaskId(): Promise<string> {
         return this.activeTaskId;
     }
+
     emptyProject(): Project {
         return this.realService.emptyProject();
     }
@@ -216,6 +219,7 @@ export class FakeProjectService implements IProjectService {
     swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
         return this.realService.swapTasks(project, draggedTaskId, droppedTaskStatusId, droppedTaskOrdinal);
     }
+
     moveCardToStatus(project: Project, draggedTaskId: string, statusId: string): boolean {
         return this.realService.moveCardToStatus(project, draggedTaskId, statusId);
     }

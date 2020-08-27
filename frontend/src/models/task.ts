@@ -13,6 +13,7 @@ export interface TaskRead extends TaskCreate {
 export interface TaskUpdate extends TaskCreate {
     id: string;
     assigneeEmail: string;
+    estimatedTime: string;
 }
 
 export interface TaskCreate {

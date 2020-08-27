@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import './addtask.scss';
 import { Form } from 'react-bootstrap';
 import { TaskCreate } from '../../../../../../models/task';
@@ -13,6 +13,7 @@ type AddTaskProps = {
 
 export const AddTask = ({createTask, statusId}: AddTaskProps) => {
     const titleInput = useRef<HTMLInputElement>(null);
+    const [show, setShow] = useState(false);
 
     const handleSubmit = (formData: FormData) => {
         createTask({
@@ -25,8 +26,7 @@ export const AddTask = ({createTask, statusId}: AddTaskProps) => {
 
     const taskTypeOptions = Object.keys(TaskType).filter(k => !isNaN(+k)).map(k => {return {number: +k, label: TaskType[+k]}});
 
-
-    const addTaskContent = (<> 
+    const addTaskContent = (<>
             <Form.Group controlId="title">
                 <Form.Label>Title</Form.Label>
                 <Form.Control autoFocus={true} type="text" name="title" required={true} ref={titleInput}></Form.Control>
@@ -46,13 +46,18 @@ export const AddTask = ({createTask, statusId}: AddTaskProps) => {
         </>);
 
     return (
-        <ModalForm 
-            title="Create New Task" 
-            formContent={addTaskContent} 
-            focusElement={titleInput}
-            formElementId="add-task-form" 
-            onSubmit={handleSubmit}
-            showButtonContent={(<Plus size={24}/>)}
-            buttonClasses={["btn-primary", "p-1", "m-2"]}
-        />);
+        <>
+            <button className="btn m-2 p-1 btn-primary" onClick={() => {setShow(true)}}>
+                <Plus size={24}/>
+            </button>
+            <ModalForm 
+                title="Create New Task" 
+                formContent={addTaskContent} 
+                focusElement={titleInput}
+                formElementId="add-task-form" 
+                onSubmit={handleSubmit}
+                setShow={setShow}
+                show={show}
+            />
+        </>);
 };

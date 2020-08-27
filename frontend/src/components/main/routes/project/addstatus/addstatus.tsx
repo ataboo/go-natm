@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import "./addstatus.scss";
 import { Form } from 'react-bootstrap';
 import { StatusCreate } from '../../../../../models/status';
@@ -11,6 +11,7 @@ type AddStatusProps = {
 
 export const AddStatus = ({createStatus}: AddStatusProps) => {
     const nameInput = useRef<HTMLInputElement>(null);
+    const [show, setShow] = useState(false);
 
     const handleSubmit = (formData: FormData) => {
         createStatus({
@@ -18,19 +19,24 @@ export const AddStatus = ({createStatus}: AddStatusProps) => {
         });    
     };
 
-    const buttonContent = (<Plus size={24}/>);
-
     const formContent = (<Form.Group controlId="name">
                             <Form.Label>Status Name</Form.Label>
                             <Form.Control type="text" name="name" required={true} autoFocus={true} ref={nameInput}></Form.Control>
                         </Form.Group>);
 
-    return (<ModalForm 
-        focusElement={nameInput} 
-        formContent={formContent} 
-        formElementId="add-status-form" 
-        onSubmit={handleSubmit} 
-        showButtonContent={buttonContent} title="Create New Status"
-        buttonClasses={["btn-primary", "p-1", "m-2"]} 
-    />)
+    return (
+        <div>
+            <button className="btn m-2 p-1 btn-primary" onClick={() => {setShow(true)}}>
+                <Plus size={24}/><span className="mr-2">Status</span>
+            </button>
+            <ModalForm 
+                focusElement={nameInput} 
+                formContent={formContent} 
+                formElementId="add-status-form" 
+                onSubmit={handleSubmit} 
+                title="Create New Status"
+                setShow={setShow}
+                show={show} 
+            />
+        </div>)
 };

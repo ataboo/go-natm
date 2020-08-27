@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './card.scss';
 import { ICardActions } from '../../icardactions';
 import { CardHeader } from './cardheader';
 import { TaskRead } from '../../../../../../models/task';
 import { userNameAsInitials } from '../../../../../../services/implementation/stringhelpers';
 import classNames from 'classnames';
+import moment from 'moment';
 
 type CardProps = {
     task: TaskRead
@@ -20,6 +21,18 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     //until dragend event is fixed in firefox
     const getOpacity = () => cardActions.getDraggedCardId() === task.id ? 0.2 : 1;
     const elementRef = React.useRef<HTMLDivElement>(null);
+
+    const [currentTime, setCurrentTime] = useState(task.timing.current);
+
+    useEffect(() => {
+        if (cardActions.getActiveTaskId() === task.id) {
+            setTimeout(activeTaskTick, 1000);
+        }
+    });
+
+    const activeTaskTick = () => {
+        setCurrentTime(currentTime.clone().add(1, "second"));
+    }
     
     function onDragStart(event: React.DragEvent<HTMLDivElement>, {id} : DragStartProps) {
         elementRef!.current!.addEventListener('dragend', onDragEnd, false);
@@ -46,7 +59,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">2hrs|4hrs</div>)
+    return (<div className="timing-indicator">{moment.utc(currentTime.asMilliseconds()).format("H:mm")} | {task.timing.estimated ? task.timing.estimated!.asHours() + "h" : '-'}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();
