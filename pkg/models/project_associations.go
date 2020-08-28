@@ -21,33 +21,27 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// ProjectUser is an object representing the database table.
-type ProjectUser struct {
-	ID        string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ProjectID string `boil:"project_id" json:"project_id" toml:"project_id" yaml:"project_id"`
-	UserID    string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	CanRead   bool   `boil:"can_read" json:"can_read" toml:"can_read" yaml:"can_read"`
-	CanWrite  bool   `boil:"can_write" json:"can_write" toml:"can_write" yaml:"can_write"`
-	IsOwner   bool   `boil:"is_owner" json:"is_owner" toml:"is_owner" yaml:"is_owner"`
+// ProjectAssociation is an object representing the database table.
+type ProjectAssociation struct {
+	ID          string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ProjectID   string `boil:"project_id" json:"project_id" toml:"project_id" yaml:"project_id"`
+	UserID      string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	Association string `boil:"association" json:"association" toml:"association" yaml:"association"`
 
-	R *projectUserR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L projectUserL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *projectAssociationR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L projectAssociationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var ProjectUserColumns = struct {
-	ID        string
-	ProjectID string
-	UserID    string
-	CanRead   string
-	CanWrite  string
-	IsOwner   string
+var ProjectAssociationColumns = struct {
+	ID          string
+	ProjectID   string
+	UserID      string
+	Association string
 }{
-	ID:        "id",
-	ProjectID: "project_id",
-	UserID:    "user_id",
-	CanRead:   "can_read",
-	CanWrite:  "can_write",
-	IsOwner:   "is_owner",
+	ID:          "id",
+	ProjectID:   "project_id",
+	UserID:      "user_id",
+	Association: "association",
 }
 
 // Generated where
@@ -75,33 +69,20 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-type whereHelperbool struct{ field string }
-
-func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-
-var ProjectUserWhere = struct {
-	ID        whereHelperstring
-	ProjectID whereHelperstring
-	UserID    whereHelperstring
-	CanRead   whereHelperbool
-	CanWrite  whereHelperbool
-	IsOwner   whereHelperbool
+var ProjectAssociationWhere = struct {
+	ID          whereHelperstring
+	ProjectID   whereHelperstring
+	UserID      whereHelperstring
+	Association whereHelperstring
 }{
-	ID:        whereHelperstring{field: "\"project_users\".\"id\""},
-	ProjectID: whereHelperstring{field: "\"project_users\".\"project_id\""},
-	UserID:    whereHelperstring{field: "\"project_users\".\"user_id\""},
-	CanRead:   whereHelperbool{field: "\"project_users\".\"can_read\""},
-	CanWrite:  whereHelperbool{field: "\"project_users\".\"can_write\""},
-	IsOwner:   whereHelperbool{field: "\"project_users\".\"is_owner\""},
+	ID:          whereHelperstring{field: "\"project_associations\".\"id\""},
+	ProjectID:   whereHelperstring{field: "\"project_associations\".\"project_id\""},
+	UserID:      whereHelperstring{field: "\"project_associations\".\"user_id\""},
+	Association: whereHelperstring{field: "\"project_associations\".\"association\""},
 }
 
-// ProjectUserRels is where relationship names are stored.
-var ProjectUserRels = struct {
+// ProjectAssociationRels is where relationship names are stored.
+var ProjectAssociationRels = struct {
 	Project string
 	User    string
 }{
@@ -109,50 +90,50 @@ var ProjectUserRels = struct {
 	User:    "User",
 }
 
-// projectUserR is where relationships are stored.
-type projectUserR struct {
+// projectAssociationR is where relationships are stored.
+type projectAssociationR struct {
 	Project *Project `boil:"Project" json:"Project" toml:"Project" yaml:"Project"`
 	User    *User    `boil:"User" json:"User" toml:"User" yaml:"User"`
 }
 
 // NewStruct creates a new relationship struct
-func (*projectUserR) NewStruct() *projectUserR {
-	return &projectUserR{}
+func (*projectAssociationR) NewStruct() *projectAssociationR {
+	return &projectAssociationR{}
 }
 
-// projectUserL is where Load methods for each relationship are stored.
-type projectUserL struct{}
+// projectAssociationL is where Load methods for each relationship are stored.
+type projectAssociationL struct{}
 
 var (
-	projectUserAllColumns            = []string{"id", "project_id", "user_id", "can_read", "can_write", "is_owner"}
-	projectUserColumnsWithoutDefault = []string{"id", "project_id", "user_id", "can_read", "can_write", "is_owner"}
-	projectUserColumnsWithDefault    = []string{}
-	projectUserPrimaryKeyColumns     = []string{"id"}
+	projectAssociationAllColumns            = []string{"id", "project_id", "user_id", "association"}
+	projectAssociationColumnsWithoutDefault = []string{"id", "project_id", "user_id", "association"}
+	projectAssociationColumnsWithDefault    = []string{}
+	projectAssociationPrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// ProjectUserSlice is an alias for a slice of pointers to ProjectUser.
-	// This should generally be used opposed to []ProjectUser.
-	ProjectUserSlice []*ProjectUser
-	// ProjectUserHook is the signature for custom ProjectUser hook methods
-	ProjectUserHook func(context.Context, boil.ContextExecutor, *ProjectUser) error
+	// ProjectAssociationSlice is an alias for a slice of pointers to ProjectAssociation.
+	// This should generally be used opposed to []ProjectAssociation.
+	ProjectAssociationSlice []*ProjectAssociation
+	// ProjectAssociationHook is the signature for custom ProjectAssociation hook methods
+	ProjectAssociationHook func(context.Context, boil.ContextExecutor, *ProjectAssociation) error
 
-	projectUserQuery struct {
+	projectAssociationQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	projectUserType                 = reflect.TypeOf(&ProjectUser{})
-	projectUserMapping              = queries.MakeStructMapping(projectUserType)
-	projectUserPrimaryKeyMapping, _ = queries.BindMapping(projectUserType, projectUserMapping, projectUserPrimaryKeyColumns)
-	projectUserInsertCacheMut       sync.RWMutex
-	projectUserInsertCache          = make(map[string]insertCache)
-	projectUserUpdateCacheMut       sync.RWMutex
-	projectUserUpdateCache          = make(map[string]updateCache)
-	projectUserUpsertCacheMut       sync.RWMutex
-	projectUserUpsertCache          = make(map[string]insertCache)
+	projectAssociationType                 = reflect.TypeOf(&ProjectAssociation{})
+	projectAssociationMapping              = queries.MakeStructMapping(projectAssociationType)
+	projectAssociationPrimaryKeyMapping, _ = queries.BindMapping(projectAssociationType, projectAssociationMapping, projectAssociationPrimaryKeyColumns)
+	projectAssociationInsertCacheMut       sync.RWMutex
+	projectAssociationInsertCache          = make(map[string]insertCache)
+	projectAssociationUpdateCacheMut       sync.RWMutex
+	projectAssociationUpdateCache          = make(map[string]updateCache)
+	projectAssociationUpsertCacheMut       sync.RWMutex
+	projectAssociationUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -163,24 +144,24 @@ var (
 	_ = qmhelper.Where
 )
 
-var projectUserBeforeInsertHooks []ProjectUserHook
-var projectUserBeforeUpdateHooks []ProjectUserHook
-var projectUserBeforeDeleteHooks []ProjectUserHook
-var projectUserBeforeUpsertHooks []ProjectUserHook
+var projectAssociationBeforeInsertHooks []ProjectAssociationHook
+var projectAssociationBeforeUpdateHooks []ProjectAssociationHook
+var projectAssociationBeforeDeleteHooks []ProjectAssociationHook
+var projectAssociationBeforeUpsertHooks []ProjectAssociationHook
 
-var projectUserAfterInsertHooks []ProjectUserHook
-var projectUserAfterSelectHooks []ProjectUserHook
-var projectUserAfterUpdateHooks []ProjectUserHook
-var projectUserAfterDeleteHooks []ProjectUserHook
-var projectUserAfterUpsertHooks []ProjectUserHook
+var projectAssociationAfterInsertHooks []ProjectAssociationHook
+var projectAssociationAfterSelectHooks []ProjectAssociationHook
+var projectAssociationAfterUpdateHooks []ProjectAssociationHook
+var projectAssociationAfterDeleteHooks []ProjectAssociationHook
+var projectAssociationAfterUpsertHooks []ProjectAssociationHook
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *ProjectUser) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserBeforeInsertHooks {
+	for _, hook := range projectAssociationBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -190,12 +171,12 @@ func (o *ProjectUser) doBeforeInsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *ProjectUser) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserBeforeUpdateHooks {
+	for _, hook := range projectAssociationBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -205,12 +186,12 @@ func (o *ProjectUser) doBeforeUpdateHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *ProjectUser) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserBeforeDeleteHooks {
+	for _, hook := range projectAssociationBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -220,12 +201,12 @@ func (o *ProjectUser) doBeforeDeleteHooks(ctx context.Context, exec boil.Context
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *ProjectUser) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserBeforeUpsertHooks {
+	for _, hook := range projectAssociationBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -235,12 +216,12 @@ func (o *ProjectUser) doBeforeUpsertHooks(ctx context.Context, exec boil.Context
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *ProjectUser) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserAfterInsertHooks {
+	for _, hook := range projectAssociationAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -250,12 +231,12 @@ func (o *ProjectUser) doAfterInsertHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *ProjectUser) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserAfterSelectHooks {
+	for _, hook := range projectAssociationAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -265,12 +246,12 @@ func (o *ProjectUser) doAfterSelectHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *ProjectUser) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserAfterUpdateHooks {
+	for _, hook := range projectAssociationAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -280,12 +261,12 @@ func (o *ProjectUser) doAfterUpdateHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *ProjectUser) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserAfterDeleteHooks {
+	for _, hook := range projectAssociationAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -295,12 +276,12 @@ func (o *ProjectUser) doAfterDeleteHooks(ctx context.Context, exec boil.ContextE
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *ProjectUser) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *ProjectAssociation) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range projectUserAfterUpsertHooks {
+	for _, hook := range projectAssociationAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -309,33 +290,33 @@ func (o *ProjectUser) doAfterUpsertHooks(ctx context.Context, exec boil.ContextE
 	return nil
 }
 
-// AddProjectUserHook registers your hook function for all future operations.
-func AddProjectUserHook(hookPoint boil.HookPoint, projectUserHook ProjectUserHook) {
+// AddProjectAssociationHook registers your hook function for all future operations.
+func AddProjectAssociationHook(hookPoint boil.HookPoint, projectAssociationHook ProjectAssociationHook) {
 	switch hookPoint {
 	case boil.BeforeInsertHook:
-		projectUserBeforeInsertHooks = append(projectUserBeforeInsertHooks, projectUserHook)
+		projectAssociationBeforeInsertHooks = append(projectAssociationBeforeInsertHooks, projectAssociationHook)
 	case boil.BeforeUpdateHook:
-		projectUserBeforeUpdateHooks = append(projectUserBeforeUpdateHooks, projectUserHook)
+		projectAssociationBeforeUpdateHooks = append(projectAssociationBeforeUpdateHooks, projectAssociationHook)
 	case boil.BeforeDeleteHook:
-		projectUserBeforeDeleteHooks = append(projectUserBeforeDeleteHooks, projectUserHook)
+		projectAssociationBeforeDeleteHooks = append(projectAssociationBeforeDeleteHooks, projectAssociationHook)
 	case boil.BeforeUpsertHook:
-		projectUserBeforeUpsertHooks = append(projectUserBeforeUpsertHooks, projectUserHook)
+		projectAssociationBeforeUpsertHooks = append(projectAssociationBeforeUpsertHooks, projectAssociationHook)
 	case boil.AfterInsertHook:
-		projectUserAfterInsertHooks = append(projectUserAfterInsertHooks, projectUserHook)
+		projectAssociationAfterInsertHooks = append(projectAssociationAfterInsertHooks, projectAssociationHook)
 	case boil.AfterSelectHook:
-		projectUserAfterSelectHooks = append(projectUserAfterSelectHooks, projectUserHook)
+		projectAssociationAfterSelectHooks = append(projectAssociationAfterSelectHooks, projectAssociationHook)
 	case boil.AfterUpdateHook:
-		projectUserAfterUpdateHooks = append(projectUserAfterUpdateHooks, projectUserHook)
+		projectAssociationAfterUpdateHooks = append(projectAssociationAfterUpdateHooks, projectAssociationHook)
 	case boil.AfterDeleteHook:
-		projectUserAfterDeleteHooks = append(projectUserAfterDeleteHooks, projectUserHook)
+		projectAssociationAfterDeleteHooks = append(projectAssociationAfterDeleteHooks, projectAssociationHook)
 	case boil.AfterUpsertHook:
-		projectUserAfterUpsertHooks = append(projectUserAfterUpsertHooks, projectUserHook)
+		projectAssociationAfterUpsertHooks = append(projectAssociationAfterUpsertHooks, projectAssociationHook)
 	}
 }
 
-// One returns a single projectUser record from the query.
-func (q projectUserQuery) One(ctx context.Context, exec boil.ContextExecutor) (*ProjectUser, error) {
-	o := &ProjectUser{}
+// One returns a single projectAssociation record from the query.
+func (q projectAssociationQuery) One(ctx context.Context, exec boil.ContextExecutor) (*ProjectAssociation, error) {
+	o := &ProjectAssociation{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -344,7 +325,7 @@ func (q projectUserQuery) One(ctx context.Context, exec boil.ContextExecutor) (*
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for project_users")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for project_associations")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -354,16 +335,16 @@ func (q projectUserQuery) One(ctx context.Context, exec boil.ContextExecutor) (*
 	return o, nil
 }
 
-// All returns all ProjectUser records from the query.
-func (q projectUserQuery) All(ctx context.Context, exec boil.ContextExecutor) (ProjectUserSlice, error) {
-	var o []*ProjectUser
+// All returns all ProjectAssociation records from the query.
+func (q projectAssociationQuery) All(ctx context.Context, exec boil.ContextExecutor) (ProjectAssociationSlice, error) {
+	var o []*ProjectAssociation
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to ProjectUser slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to ProjectAssociation slice")
 	}
 
-	if len(projectUserAfterSelectHooks) != 0 {
+	if len(projectAssociationAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -374,8 +355,8 @@ func (q projectUserQuery) All(ctx context.Context, exec boil.ContextExecutor) (P
 	return o, nil
 }
 
-// Count returns the count of all ProjectUser records in the query.
-func (q projectUserQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all ProjectAssociation records in the query.
+func (q projectAssociationQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -383,14 +364,14 @@ func (q projectUserQuery) Count(ctx context.Context, exec boil.ContextExecutor) 
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count project_users rows")
+		return 0, errors.Wrap(err, "models: failed to count project_associations rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q projectUserQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q projectAssociationQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -399,14 +380,14 @@ func (q projectUserQuery) Exists(ctx context.Context, exec boil.ContextExecutor)
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if project_users exists")
+		return false, errors.Wrap(err, "models: failed to check if project_associations exists")
 	}
 
 	return count > 0, nil
 }
 
 // Project pointed to by the foreign key.
-func (o *ProjectUser) Project(mods ...qm.QueryMod) projectQuery {
+func (o *ProjectAssociation) Project(mods ...qm.QueryMod) projectQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"id\" = ?", o.ProjectID),
 	}
@@ -420,7 +401,7 @@ func (o *ProjectUser) Project(mods ...qm.QueryMod) projectQuery {
 }
 
 // User pointed to by the foreign key.
-func (o *ProjectUser) User(mods ...qm.QueryMod) userQuery {
+func (o *ProjectAssociation) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"id\" = ?", o.UserID),
 	}
@@ -435,20 +416,20 @@ func (o *ProjectUser) User(mods ...qm.QueryMod) userQuery {
 
 // LoadProject allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectUser interface{}, mods queries.Applicator) error {
-	var slice []*ProjectUser
-	var object *ProjectUser
+func (projectAssociationL) LoadProject(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectAssociation interface{}, mods queries.Applicator) error {
+	var slice []*ProjectAssociation
+	var object *ProjectAssociation
 
 	if singular {
-		object = maybeProjectUser.(*ProjectUser)
+		object = maybeProjectAssociation.(*ProjectAssociation)
 	} else {
-		slice = *maybeProjectUser.(*[]*ProjectUser)
+		slice = *maybeProjectAssociation.(*[]*ProjectAssociation)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &projectUserR{}
+			object.R = &projectAssociationR{}
 		}
 		args = append(args, object.ProjectID)
 
@@ -456,7 +437,7 @@ func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, sin
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &projectUserR{}
+				obj.R = &projectAssociationR{}
 			}
 
 			for _, a := range args {
@@ -499,7 +480,7 @@ func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, sin
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for projects")
 	}
 
-	if len(projectUserAfterSelectHooks) != 0 {
+	if len(projectAssociationAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -517,7 +498,7 @@ func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, sin
 		if foreign.R == nil {
 			foreign.R = &projectR{}
 		}
-		foreign.R.ProjectUsers = append(foreign.R.ProjectUsers, object)
+		foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, object)
 		return nil
 	}
 
@@ -528,7 +509,7 @@ func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, sin
 				if foreign.R == nil {
 					foreign.R = &projectR{}
 				}
-				foreign.R.ProjectUsers = append(foreign.R.ProjectUsers, local)
+				foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, local)
 				break
 			}
 		}
@@ -539,20 +520,20 @@ func (projectUserL) LoadProject(ctx context.Context, e boil.ContextExecutor, sin
 
 // LoadUser allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectUser interface{}, mods queries.Applicator) error {
-	var slice []*ProjectUser
-	var object *ProjectUser
+func (projectAssociationL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectAssociation interface{}, mods queries.Applicator) error {
+	var slice []*ProjectAssociation
+	var object *ProjectAssociation
 
 	if singular {
-		object = maybeProjectUser.(*ProjectUser)
+		object = maybeProjectAssociation.(*ProjectAssociation)
 	} else {
-		slice = *maybeProjectUser.(*[]*ProjectUser)
+		slice = *maybeProjectAssociation.(*[]*ProjectAssociation)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &projectUserR{}
+			object.R = &projectAssociationR{}
 		}
 		args = append(args, object.UserID)
 
@@ -560,7 +541,7 @@ func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singul
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &projectUserR{}
+				obj.R = &projectAssociationR{}
 			}
 
 			for _, a := range args {
@@ -603,7 +584,7 @@ func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singul
 		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
 	}
 
-	if len(projectUserAfterSelectHooks) != 0 {
+	if len(projectAssociationAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -621,7 +602,7 @@ func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singul
 		if foreign.R == nil {
 			foreign.R = &userR{}
 		}
-		foreign.R.ProjectUsers = append(foreign.R.ProjectUsers, object)
+		foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, object)
 		return nil
 	}
 
@@ -632,7 +613,7 @@ func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singul
 				if foreign.R == nil {
 					foreign.R = &userR{}
 				}
-				foreign.R.ProjectUsers = append(foreign.R.ProjectUsers, local)
+				foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, local)
 				break
 			}
 		}
@@ -641,10 +622,10 @@ func (projectUserL) LoadUser(ctx context.Context, e boil.ContextExecutor, singul
 	return nil
 }
 
-// SetProject of the projectUser to the related item.
+// SetProject of the projectAssociation to the related item.
 // Sets o.R.Project to related.
-// Adds o to related.R.ProjectUsers.
-func (o *ProjectUser) SetProject(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Project) error {
+// Adds o to related.R.ProjectAssociations.
+func (o *ProjectAssociation) SetProject(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Project) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -653,9 +634,9 @@ func (o *ProjectUser) SetProject(ctx context.Context, exec boil.ContextExecutor,
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE \"project_users\" SET %s WHERE %s",
+		"UPDATE \"project_associations\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, []string{"project_id"}),
-		strmangle.WhereClause("\"", "\"", 2, projectUserPrimaryKeyColumns),
+		strmangle.WhereClause("\"", "\"", 2, projectAssociationPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -670,7 +651,7 @@ func (o *ProjectUser) SetProject(ctx context.Context, exec boil.ContextExecutor,
 
 	o.ProjectID = related.ID
 	if o.R == nil {
-		o.R = &projectUserR{
+		o.R = &projectAssociationR{
 			Project: related,
 		}
 	} else {
@@ -679,19 +660,19 @@ func (o *ProjectUser) SetProject(ctx context.Context, exec boil.ContextExecutor,
 
 	if related.R == nil {
 		related.R = &projectR{
-			ProjectUsers: ProjectUserSlice{o},
+			ProjectAssociations: ProjectAssociationSlice{o},
 		}
 	} else {
-		related.R.ProjectUsers = append(related.R.ProjectUsers, o)
+		related.R.ProjectAssociations = append(related.R.ProjectAssociations, o)
 	}
 
 	return nil
 }
 
-// SetUser of the projectUser to the related item.
+// SetUser of the projectAssociation to the related item.
 // Sets o.R.User to related.
-// Adds o to related.R.ProjectUsers.
-func (o *ProjectUser) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+// Adds o to related.R.ProjectAssociations.
+func (o *ProjectAssociation) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -700,9 +681,9 @@ func (o *ProjectUser) SetUser(ctx context.Context, exec boil.ContextExecutor, in
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE \"project_users\" SET %s WHERE %s",
+		"UPDATE \"project_associations\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
-		strmangle.WhereClause("\"", "\"", 2, projectUserPrimaryKeyColumns),
+		strmangle.WhereClause("\"", "\"", 2, projectAssociationPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -717,7 +698,7 @@ func (o *ProjectUser) SetUser(ctx context.Context, exec boil.ContextExecutor, in
 
 	o.UserID = related.ID
 	if o.R == nil {
-		o.R = &projectUserR{
+		o.R = &projectAssociationR{
 			User: related,
 		}
 	} else {
@@ -726,52 +707,52 @@ func (o *ProjectUser) SetUser(ctx context.Context, exec boil.ContextExecutor, in
 
 	if related.R == nil {
 		related.R = &userR{
-			ProjectUsers: ProjectUserSlice{o},
+			ProjectAssociations: ProjectAssociationSlice{o},
 		}
 	} else {
-		related.R.ProjectUsers = append(related.R.ProjectUsers, o)
+		related.R.ProjectAssociations = append(related.R.ProjectAssociations, o)
 	}
 
 	return nil
 }
 
-// ProjectUsers retrieves all the records using an executor.
-func ProjectUsers(mods ...qm.QueryMod) projectUserQuery {
-	mods = append(mods, qm.From("\"project_users\""))
-	return projectUserQuery{NewQuery(mods...)}
+// ProjectAssociations retrieves all the records using an executor.
+func ProjectAssociations(mods ...qm.QueryMod) projectAssociationQuery {
+	mods = append(mods, qm.From("\"project_associations\""))
+	return projectAssociationQuery{NewQuery(mods...)}
 }
 
-// FindProjectUser retrieves a single record by ID with an executor.
+// FindProjectAssociation retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindProjectUser(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*ProjectUser, error) {
-	projectUserObj := &ProjectUser{}
+func FindProjectAssociation(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*ProjectAssociation, error) {
+	projectAssociationObj := &ProjectAssociation{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"project_users\" where \"id\"=$1", sel,
+		"select %s from \"project_associations\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, projectUserObj)
+	err := q.Bind(ctx, exec, projectAssociationObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from project_users")
+		return nil, errors.Wrap(err, "models: unable to select from project_associations")
 	}
 
-	return projectUserObj, nil
+	return projectAssociationObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *ProjectUser) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *ProjectAssociation) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no project_users provided for insertion")
+		return errors.New("models: no project_associations provided for insertion")
 	}
 
 	var err error
@@ -780,33 +761,33 @@ func (o *ProjectUser) Insert(ctx context.Context, exec boil.ContextExecutor, col
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(projectUserColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(projectAssociationColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	projectUserInsertCacheMut.RLock()
-	cache, cached := projectUserInsertCache[key]
-	projectUserInsertCacheMut.RUnlock()
+	projectAssociationInsertCacheMut.RLock()
+	cache, cached := projectAssociationInsertCache[key]
+	projectAssociationInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			projectUserAllColumns,
-			projectUserColumnsWithDefault,
-			projectUserColumnsWithoutDefault,
+			projectAssociationAllColumns,
+			projectAssociationColumnsWithDefault,
+			projectAssociationColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(projectUserType, projectUserMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(projectAssociationType, projectAssociationMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(projectUserType, projectUserMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(projectAssociationType, projectAssociationMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"project_users\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"project_associations\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"project_users\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"project_associations\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -834,49 +815,49 @@ func (o *ProjectUser) Insert(ctx context.Context, exec boil.ContextExecutor, col
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into project_users")
+		return errors.Wrap(err, "models: unable to insert into project_associations")
 	}
 
 	if !cached {
-		projectUserInsertCacheMut.Lock()
-		projectUserInsertCache[key] = cache
-		projectUserInsertCacheMut.Unlock()
+		projectAssociationInsertCacheMut.Lock()
+		projectAssociationInsertCache[key] = cache
+		projectAssociationInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// Update uses an executor to update the ProjectUser.
+// Update uses an executor to update the ProjectAssociation.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *ProjectUser) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *ProjectAssociation) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	projectUserUpdateCacheMut.RLock()
-	cache, cached := projectUserUpdateCache[key]
-	projectUserUpdateCacheMut.RUnlock()
+	projectAssociationUpdateCacheMut.RLock()
+	cache, cached := projectAssociationUpdateCache[key]
+	projectAssociationUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			projectUserAllColumns,
-			projectUserPrimaryKeyColumns,
+			projectAssociationAllColumns,
+			projectAssociationPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("models: unable to update project_users, could not build whitelist")
+			return 0, errors.New("models: unable to update project_associations, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"project_users\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"project_associations\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
-			strmangle.WhereClause("\"", "\"", len(wl)+1, projectUserPrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, projectAssociationPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(projectUserType, projectUserMapping, append(wl, projectUserPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(projectAssociationType, projectAssociationMapping, append(wl, projectAssociationPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -892,42 +873,42 @@ func (o *ProjectUser) Update(ctx context.Context, exec boil.ContextExecutor, col
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update project_users row")
+		return 0, errors.Wrap(err, "models: unable to update project_associations row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by update for project_users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by update for project_associations")
 	}
 
 	if !cached {
-		projectUserUpdateCacheMut.Lock()
-		projectUserUpdateCache[key] = cache
-		projectUserUpdateCacheMut.Unlock()
+		projectAssociationUpdateCacheMut.Lock()
+		projectAssociationUpdateCache[key] = cache
+		projectAssociationUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q projectUserQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q projectAssociationQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all for project_users")
+		return 0, errors.Wrap(err, "models: unable to update all for project_associations")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for project_users")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for project_associations")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o ProjectUserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o ProjectAssociationSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -949,13 +930,13 @@ func (o ProjectUserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecut
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectUserPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectAssociationPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"project_users\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"project_associations\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, projectUserPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, projectAssociationPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -964,28 +945,28 @@ func (o ProjectUserSlice) UpdateAll(ctx context.Context, exec boil.ContextExecut
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all in projectUser slice")
+		return 0, errors.Wrap(err, "models: unable to update all in projectAssociation slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all projectUser")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all projectAssociation")
 	}
 	return rowsAff, nil
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *ProjectUser) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
+func (o *ProjectAssociation) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no project_users provided for upsert")
+		return errors.New("models: no project_associations provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(projectUserColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(projectAssociationColumnsWithDefault, o)
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
@@ -1015,41 +996,41 @@ func (o *ProjectUser) Upsert(ctx context.Context, exec boil.ContextExecutor, upd
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	projectUserUpsertCacheMut.RLock()
-	cache, cached := projectUserUpsertCache[key]
-	projectUserUpsertCacheMut.RUnlock()
+	projectAssociationUpsertCacheMut.RLock()
+	cache, cached := projectAssociationUpsertCache[key]
+	projectAssociationUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, ret := insertColumns.InsertColumnSet(
-			projectUserAllColumns,
-			projectUserColumnsWithDefault,
-			projectUserColumnsWithoutDefault,
+			projectAssociationAllColumns,
+			projectAssociationColumnsWithDefault,
+			projectAssociationColumnsWithoutDefault,
 			nzDefaults,
 		)
 		update := updateColumns.UpdateColumnSet(
-			projectUserAllColumns,
-			projectUserPrimaryKeyColumns,
+			projectAssociationAllColumns,
+			projectAssociationPrimaryKeyColumns,
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("models: unable to upsert project_users, could not build update column list")
+			return errors.New("models: unable to upsert project_associations, could not build update column list")
 		}
 
 		conflict := conflictColumns
 		if len(conflict) == 0 {
-			conflict = make([]string, len(projectUserPrimaryKeyColumns))
-			copy(conflict, projectUserPrimaryKeyColumns)
+			conflict = make([]string, len(projectAssociationPrimaryKeyColumns))
+			copy(conflict, projectAssociationPrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"project_users\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"project_associations\"", updateOnConflict, ret, update, conflict, insert)
 
-		cache.valueMapping, err = queries.BindMapping(projectUserType, projectUserMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(projectAssociationType, projectAssociationMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(projectUserType, projectUserMapping, ret)
+			cache.retMapping, err = queries.BindMapping(projectAssociationType, projectAssociationMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -1077,31 +1058,31 @@ func (o *ProjectUser) Upsert(ctx context.Context, exec boil.ContextExecutor, upd
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert project_users")
+		return errors.Wrap(err, "models: unable to upsert project_associations")
 	}
 
 	if !cached {
-		projectUserUpsertCacheMut.Lock()
-		projectUserUpsertCache[key] = cache
-		projectUserUpsertCacheMut.Unlock()
+		projectAssociationUpsertCacheMut.Lock()
+		projectAssociationUpsertCache[key] = cache
+		projectAssociationUpsertCacheMut.Unlock()
 	}
 
 	return o.doAfterUpsertHooks(ctx, exec)
 }
 
-// Delete deletes a single ProjectUser record with an executor.
+// Delete deletes a single ProjectAssociation record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *ProjectUser) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *ProjectAssociation) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("models: no ProjectUser provided for delete")
+		return 0, errors.New("models: no ProjectAssociation provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), projectUserPrimaryKeyMapping)
-	sql := "DELETE FROM \"project_users\" WHERE \"id\"=$1"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), projectAssociationPrimaryKeyMapping)
+	sql := "DELETE FROM \"project_associations\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1110,12 +1091,12 @@ func (o *ProjectUser) Delete(ctx context.Context, exec boil.ContextExecutor) (in
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete from project_users")
+		return 0, errors.Wrap(err, "models: unable to delete from project_associations")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for project_users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for project_associations")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -1126,33 +1107,33 @@ func (o *ProjectUser) Delete(ctx context.Context, exec boil.ContextExecutor) (in
 }
 
 // DeleteAll deletes all matching rows.
-func (q projectUserQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q projectAssociationQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("models: no projectUserQuery provided for delete all")
+		return 0, errors.New("models: no projectAssociationQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from project_users")
+		return 0, errors.Wrap(err, "models: unable to delete all from project_associations")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for project_users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for project_associations")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o ProjectUserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o ProjectAssociationSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(projectUserBeforeDeleteHooks) != 0 {
+	if len(projectAssociationBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1162,12 +1143,12 @@ func (o ProjectUserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectUserPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectAssociationPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"project_users\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, projectUserPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"project_associations\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, projectAssociationPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1176,15 +1157,15 @@ func (o ProjectUserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from projectUser slice")
+		return 0, errors.Wrap(err, "models: unable to delete all from projectAssociation slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for project_users")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for project_associations")
 	}
 
-	if len(projectUserAfterDeleteHooks) != 0 {
+	if len(projectAssociationAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1197,8 +1178,8 @@ func (o ProjectUserSlice) DeleteAll(ctx context.Context, exec boil.ContextExecut
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *ProjectUser) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindProjectUser(ctx, exec, o.ID)
+func (o *ProjectAssociation) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindProjectAssociation(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1209,26 +1190,26 @@ func (o *ProjectUser) Reload(ctx context.Context, exec boil.ContextExecutor) err
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *ProjectUserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *ProjectAssociationSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := ProjectUserSlice{}
+	slice := ProjectAssociationSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectUserPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), projectAssociationPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"project_users\".* FROM \"project_users\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, projectUserPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"project_associations\".* FROM \"project_associations\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, projectAssociationPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in ProjectUserSlice")
+		return errors.Wrap(err, "models: unable to reload all in ProjectAssociationSlice")
 	}
 
 	*o = slice
@@ -1236,10 +1217,10 @@ func (o *ProjectUserSlice) ReloadAll(ctx context.Context, exec boil.ContextExecu
 	return nil
 }
 
-// ProjectUserExists checks if the ProjectUser row exists.
-func ProjectUserExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+// ProjectAssociationExists checks if the ProjectAssociation row exists.
+func ProjectAssociationExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"project_users\" where \"id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"project_associations\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1250,7 +1231,7 @@ func ProjectUserExists(ctx context.Context, exec boil.ContextExecutor, iD string
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if project_users exists")
+		return false, errors.Wrap(err, "models: unable to check if project_associations exists")
 	}
 
 	return exists, nil

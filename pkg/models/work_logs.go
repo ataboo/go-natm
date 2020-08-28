@@ -28,6 +28,8 @@ type WorkLog struct {
 	UserID    string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	StartTime time.Time `boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
 	EndTime   time.Time `boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *workLogR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L workLogL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +41,16 @@ var WorkLogColumns = struct {
 	UserID    string
 	StartTime string
 	EndTime   string
+	CreatedAt string
+	UpdatedAt string
 }{
 	ID:        "id",
 	TaskID:    "task_id",
 	UserID:    "user_id",
 	StartTime: "start_time",
 	EndTime:   "end_time",
+	CreatedAt: "created_at",
+	UpdatedAt: "updated_at",
 }
 
 // Generated where
@@ -55,12 +61,16 @@ var WorkLogWhere = struct {
 	UserID    whereHelperstring
 	StartTime whereHelpertime_Time
 	EndTime   whereHelpertime_Time
+	CreatedAt whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
 }{
 	ID:        whereHelperstring{field: "\"work_logs\".\"id\""},
 	TaskID:    whereHelperstring{field: "\"work_logs\".\"task_id\""},
 	UserID:    whereHelperstring{field: "\"work_logs\".\"user_id\""},
 	StartTime: whereHelpertime_Time{field: "\"work_logs\".\"start_time\""},
 	EndTime:   whereHelpertime_Time{field: "\"work_logs\".\"end_time\""},
+	CreatedAt: whereHelpertime_Time{field: "\"work_logs\".\"created_at\""},
+	UpdatedAt: whereHelpertime_Time{field: "\"work_logs\".\"updated_at\""},
 }
 
 // WorkLogRels is where relationship names are stored.
@@ -87,9 +97,9 @@ func (*workLogR) NewStruct() *workLogR {
 type workLogL struct{}
 
 var (
-	workLogAllColumns            = []string{"id", "task_id", "user_id", "start_time", "end_time"}
+	workLogAllColumns            = []string{"id", "task_id", "user_id", "start_time", "end_time", "created_at", "updated_at"}
 	workLogColumnsWithoutDefault = []string{"id", "task_id", "user_id", "start_time", "end_time"}
-	workLogColumnsWithDefault    = []string{}
+	workLogColumnsWithDefault    = []string{"created_at", "updated_at"}
 	workLogPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -738,6 +748,16 @@ func (o *WorkLog) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 	}
 
 	var err error
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
+		}
+	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -813,6 +833,12 @@ func (o *WorkLog) Insert(ctx context.Context, exec boil.ContextExecutor, columns
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *WorkLog) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		o.UpdatedAt = currTime
+	}
+
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -942,6 +968,14 @@ func (o WorkLogSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, 
 func (o *WorkLog) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
 		return errors.New("models: no work_logs provided for upsert")
+	}
+	if !boil.TimestampsAreSkipped(ctx) {
+		currTime := time.Now().In(boil.GetLocation())
+
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
+		}
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

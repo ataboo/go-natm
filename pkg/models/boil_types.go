@@ -50,3 +50,17 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 	strmangle.PutBuffer(buf)
 	return str
 }
+
+// Enum values for associations_enum
+const (
+	AssociationsEnumOwner  = "Owner"
+	AssociationsEnumWriter = "Writer"
+	AssociationsEnumReader = "Reader"
+)
+
+// Enum values for task_type_enum
+const (
+	TaskTypeEnumTask    = "Task"
+	TaskTypeEnumProblem = "Problem"
+	TaskTypeEnumAdmin   = "Admin"
+)

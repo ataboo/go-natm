@@ -1,16 +1,20 @@
+CREATE TYPE task_type_enum as ENUM('Task', 'Problem', 'Admin');
+CREATE TYPE associations_enum as ENUM('Owner', 'Writer', 'Reader');
+
 CREATE TABLE projects (
    id UUID PRIMARY KEY,
-   name VARCHAR (50) NOT NULL,
+   name VARCHAR (64) NOT NULL,
+   identifier VARCHAR (64) NOT NULL,
    active BOOLEAN NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE task_states (
+CREATE TABLE task_statuses (
    id UUID PRIMARY KEY,
    project_id UUID NOT NULL REFERENCES projects(id),
-   name VARCHAR(50) NOT NULL,
-   position INTEGER NOT NULL,
+   name VARCHAR(64) NOT NULL,
+   ordinal INTEGER NOT NULL,
    active BOOLEAN NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -19,24 +23,22 @@ CREATE TABLE task_states (
 CREATE TABLE tasks (
    id UUID PRIMARY KEY,
    project_id UUID NOT NULL REFERENCES projects(id),
-   task_state_id UUID NOT NULL REFERENCES task_states(id),
-   name VARCHAR(50) NOT NULL,
-   description TEXT NOT NULL
+   task_status_id UUID NOT NULL REFERENCES task_statuses(id),
+   identifier VARCHAR(64) NOT NULL,
+   assignee_id UUID REFERENCES users(id),
+   ordinal INTEGER NOT NULL,
+   title VARCHAR(64) NOT NULL,
+   description TEXT NOT NULL,
+   task_type task_type_enum NOT NULL,
+   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE task_labels (
-   id UUID PRIMARY KEY,
-   name VARCHAR(50) NOT NULL,
-   project_id UUID NOT NULL REFERENCES projects(id)
-);
-
-CREATE TABLE project_users (
+CREATE TABLE project_associations (
    id UUID PRIMARY KEY,
    project_id UUID NOT NULL REFERENCES projects(id),
    user_id UUID NOT NULL REFERENCES users(id),
-   can_read BOOLEAN NOT NULL,
-   can_write BOOLEAN NOT NULL,
-   is_owner BOOLEAN NOT NULL
+   association associations_enum NOT NULL
 );
 
 CREATE TABLE work_logs (
@@ -44,5 +46,7 @@ CREATE TABLE work_logs (
    task_id UUID NOT NULL REFERENCES tasks(id),
    user_id UUID NOT NULL REFERENCES users(id),
    start_time TIMESTAMP NOT NULL,
-   end_time TIMESTAMP NOT NULL
+   end_time TIMESTAMP NOT NULL,
+   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

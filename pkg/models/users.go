@@ -59,29 +59,6 @@ var UserColumns = struct {
 
 // Generated where
 
-type whereHelpernull_String struct{ field string }
-
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var UserWhere = struct {
 	ID          whereHelperstring
 	Name        whereHelperstring
@@ -104,17 +81,20 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	ProjectUsers string
-	WorkLogs     string
+	ProjectAssociations string
+	AssigneeTasks       string
+	WorkLogs            string
 }{
-	ProjectUsers: "ProjectUsers",
-	WorkLogs:     "WorkLogs",
+	ProjectAssociations: "ProjectAssociations",
+	AssigneeTasks:       "AssigneeTasks",
+	WorkLogs:            "WorkLogs",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	ProjectUsers ProjectUserSlice `boil:"ProjectUsers" json:"ProjectUsers" toml:"ProjectUsers" yaml:"ProjectUsers"`
-	WorkLogs     WorkLogSlice     `boil:"WorkLogs" json:"WorkLogs" toml:"WorkLogs" yaml:"WorkLogs"`
+	ProjectAssociations ProjectAssociationSlice `boil:"ProjectAssociations" json:"ProjectAssociations" toml:"ProjectAssociations" yaml:"ProjectAssociations"`
+	AssigneeTasks       TaskSlice               `boil:"AssigneeTasks" json:"AssigneeTasks" toml:"AssigneeTasks" yaml:"AssigneeTasks"`
+	WorkLogs            WorkLogSlice            `boil:"WorkLogs" json:"WorkLogs" toml:"WorkLogs" yaml:"WorkLogs"`
 }
 
 // NewStruct creates a new relationship struct
@@ -407,22 +387,43 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	return count > 0, nil
 }
 
-// ProjectUsers retrieves all the project_user's ProjectUsers with an executor.
-func (o *User) ProjectUsers(mods ...qm.QueryMod) projectUserQuery {
+// ProjectAssociations retrieves all the project_association's ProjectAssociations with an executor.
+func (o *User) ProjectAssociations(mods ...qm.QueryMod) projectAssociationQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"project_users\".\"user_id\"=?", o.ID),
+		qm.Where("\"project_associations\".\"user_id\"=?", o.ID),
 	)
 
-	query := ProjectUsers(queryMods...)
-	queries.SetFrom(query.Query, "\"project_users\"")
+	query := ProjectAssociations(queryMods...)
+	queries.SetFrom(query.Query, "\"project_associations\"")
 
 	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"project_users\".*"})
+		queries.SetSelect(query.Query, []string{"\"project_associations\".*"})
+	}
+
+	return query
+}
+
+// AssigneeTasks retrieves all the task's Tasks with an executor via assignee_id column.
+func (o *User) AssigneeTasks(mods ...qm.QueryMod) taskQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"tasks\".\"assignee_id\"=?", o.ID),
+	)
+
+	query := Tasks(queryMods...)
+	queries.SetFrom(query.Query, "\"tasks\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"tasks\".*"})
 	}
 
 	return query
@@ -449,9 +450,9 @@ func (o *User) WorkLogs(mods ...qm.QueryMod) workLogQuery {
 	return query
 }
 
-// LoadProjectUsers allows an eager lookup of values, cached into the
+// LoadProjectAssociations allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (userL) LoadProjectUsers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+func (userL) LoadProjectAssociations(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
 	var slice []*User
 	var object *User
 
@@ -489,8 +490,8 @@ func (userL) LoadProjectUsers(ctx context.Context, e boil.ContextExecutor, singu
 	}
 
 	query := NewQuery(
-		qm.From(`project_users`),
-		qm.WhereIn(`project_users.user_id in ?`, args...),
+		qm.From(`project_associations`),
+		qm.WhereIn(`project_associations.user_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -498,22 +499,22 @@ func (userL) LoadProjectUsers(ctx context.Context, e boil.ContextExecutor, singu
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load project_users")
+		return errors.Wrap(err, "failed to eager load project_associations")
 	}
 
-	var resultSlice []*ProjectUser
+	var resultSlice []*ProjectAssociation
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice project_users")
+		return errors.Wrap(err, "failed to bind eager loaded slice project_associations")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on project_users")
+		return errors.Wrap(err, "failed to close results in eager load on project_associations")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for project_users")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for project_associations")
 	}
 
-	if len(projectUserAfterSelectHooks) != 0 {
+	if len(projectAssociationAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -521,10 +522,10 @@ func (userL) LoadProjectUsers(ctx context.Context, e boil.ContextExecutor, singu
 		}
 	}
 	if singular {
-		object.R.ProjectUsers = resultSlice
+		object.R.ProjectAssociations = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &projectUserR{}
+				foreign.R = &projectAssociationR{}
 			}
 			foreign.R.User = object
 		}
@@ -534,11 +535,109 @@ func (userL) LoadProjectUsers(ctx context.Context, e boil.ContextExecutor, singu
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.UserID {
-				local.R.ProjectUsers = append(local.R.ProjectUsers, foreign)
+				local.R.ProjectAssociations = append(local.R.ProjectAssociations, foreign)
 				if foreign.R == nil {
-					foreign.R = &projectUserR{}
+					foreign.R = &projectAssociationR{}
 				}
 				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadAssigneeTasks allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadAssigneeTasks(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		object = maybeUser.(*User)
+	} else {
+		slice = *maybeUser.(*[]*User)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`tasks`),
+		qm.WhereIn(`tasks.assignee_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load tasks")
+	}
+
+	var resultSlice []*Task
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice tasks")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on tasks")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for tasks")
+	}
+
+	if len(taskAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.AssigneeTasks = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &taskR{}
+			}
+			foreign.R.Assignee = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.AssigneeID) {
+				local.R.AssigneeTasks = append(local.R.AssigneeTasks, foreign)
+				if foreign.R == nil {
+					foreign.R = &taskR{}
+				}
+				foreign.R.Assignee = local
 				break
 			}
 		}
@@ -645,11 +744,11 @@ func (userL) LoadWorkLogs(ctx context.Context, e boil.ContextExecutor, singular 
 	return nil
 }
 
-// AddProjectUsers adds the given related objects to the existing relationships
+// AddProjectAssociations adds the given related objects to the existing relationships
 // of the user, optionally inserting them as new records.
-// Appends related to o.R.ProjectUsers.
+// Appends related to o.R.ProjectAssociations.
 // Sets related.R.User appropriately.
-func (o *User) AddProjectUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ProjectUser) error {
+func (o *User) AddProjectAssociations(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ProjectAssociation) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -659,9 +758,9 @@ func (o *User) AddProjectUsers(ctx context.Context, exec boil.ContextExecutor, i
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"project_users\" SET %s WHERE %s",
+				"UPDATE \"project_associations\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
-				strmangle.WhereClause("\"", "\"", 2, projectUserPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, projectAssociationPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -680,21 +779,144 @@ func (o *User) AddProjectUsers(ctx context.Context, exec boil.ContextExecutor, i
 
 	if o.R == nil {
 		o.R = &userR{
-			ProjectUsers: related,
+			ProjectAssociations: related,
 		}
 	} else {
-		o.R.ProjectUsers = append(o.R.ProjectUsers, related...)
+		o.R.ProjectAssociations = append(o.R.ProjectAssociations, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &projectUserR{
+			rel.R = &projectAssociationR{
 				User: o,
 			}
 		} else {
 			rel.R.User = o
 		}
 	}
+	return nil
+}
+
+// AddAssigneeTasks adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.AssigneeTasks.
+// Sets related.R.Assignee appropriately.
+func (o *User) AddAssigneeTasks(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Task) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.AssigneeID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"tasks\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"assignee_id"}),
+				strmangle.WhereClause("\"", "\"", 2, taskPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.AssigneeID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			AssigneeTasks: related,
+		}
+	} else {
+		o.R.AssigneeTasks = append(o.R.AssigneeTasks, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &taskR{
+				Assignee: o,
+			}
+		} else {
+			rel.R.Assignee = o
+		}
+	}
+	return nil
+}
+
+// SetAssigneeTasks removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Assignee's AssigneeTasks accordingly.
+// Replaces o.R.AssigneeTasks with related.
+// Sets related.R.Assignee's AssigneeTasks accordingly.
+func (o *User) SetAssigneeTasks(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Task) error {
+	query := "update \"tasks\" set \"assignee_id\" = null where \"assignee_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.AssigneeTasks {
+			queries.SetScanner(&rel.AssigneeID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Assignee = nil
+		}
+
+		o.R.AssigneeTasks = nil
+	}
+	return o.AddAssigneeTasks(ctx, exec, insert, related...)
+}
+
+// RemoveAssigneeTasks relationships from objects passed in.
+// Removes related items from R.AssigneeTasks (uses pointer comparison, removal does not keep order)
+// Sets related.R.Assignee.
+func (o *User) RemoveAssigneeTasks(ctx context.Context, exec boil.ContextExecutor, related ...*Task) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.AssigneeID, nil)
+		if rel.R != nil {
+			rel.R.Assignee = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("assignee_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.AssigneeTasks {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.AssigneeTasks)
+			if ln > 1 && i < ln-1 {
+				o.R.AssigneeTasks[i] = o.R.AssigneeTasks[ln-1]
+			}
+			o.R.AssigneeTasks = o.R.AssigneeTasks[:ln-1]
+			break
+		}
+	}
+
 	return nil
 }
 
