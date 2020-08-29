@@ -1,19 +1,24 @@
 import { TaskRead } from "./task";
 import { StatusRead } from "./status";
 
-export interface Project {
+export interface ProjectDetails extends ProjectCreate {
     id: string;
-    name: string;
-    identifier: string;
     tasks: TaskRead[];
     statuses: StatusRead[];
 }
 
-export const cloneProject = (oldProject: Project) => {
+export interface ProjectCreate {
+    name: string;
+    abbreviation: string;
+    description: string;
+}
+
+export const cloneProject = (oldProject: ProjectDetails) => {
     return {
         id: oldProject.id,
         name: oldProject.name,
-        identifier: oldProject.identifier,
+        abbreviation: oldProject.abbreviation,
+        description: oldProject.description,
         tasks: [...oldProject.tasks],
         statuses: [...oldProject.statuses]
     }

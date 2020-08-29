@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './project.scss';
 import { Column } from './column';
-import { Project as ProjectModel, cloneProject } from '../../../../models/project';
+import { ProjectDetails as ProjectModel, cloneProject } from '../../../../models/project';
 import { ServiceContext } from '../../../../context/service';
 import { ICardActions } from './icardactions';
 import { IProjectService } from '../../../../services/interface/iproject-service';

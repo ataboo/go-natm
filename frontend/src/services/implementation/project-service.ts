@@ -1,9 +1,22 @@
-import { Project } from "../../models/project";
+import { ProjectDetails, ProjectCreate as ProjectCreate } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
+import axios, { AxiosInstance } from "axios";
 
 export default class ProjectService implements IProjectService {
+    client: AxiosInstance
+
+    hostUri: string;
+
+    constructor() {
+        this.client = axios.create({
+            withCredentials: true,
+        });
+
+        this.hostUri = "http://localhost:8080/api/v1/";
+    }
+
     updateTask(updateData: TaskUpdate): Promise<boolean> {
         throw new Error("Method not implemented.");
     }
@@ -32,7 +45,7 @@ export default class ProjectService implements IProjectService {
         throw new Error("Method not implemented.");
     }
 
-    swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
+    swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
         let draggedTask = project.tasks.find(t => t.id === draggedTaskId);
         if (draggedTask === undefined) {
             throw new Error("Failed to find task: " + draggedTaskId);
@@ -68,7 +81,7 @@ export default class ProjectService implements IProjectService {
         return true;
     };
 
-    moveCardToStatus(project: Project, draggedTaskId: string, statusId: string): boolean {
+    moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean {
         let draggedTask = project.tasks.find(c => c.id === draggedTaskId);
         if (draggedTask === undefined) {
             throw new Error("Failed to find task: " + draggedTaskId);
@@ -90,23 +103,20 @@ export default class ProjectService implements IProjectService {
         return true;
     }
     
-    async getProjectList(): Promise<Project[]> {
-        const response = await fetch(`localhost:8080/api/v1/projects/list`, {
-            method: 'GET',
-            mode: 'same-origin',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            redirect: 'error',
-            referrerPolicy: 'no-referrer'
-        });
-    
-        return response.json();
+    async getProjectList(): Promise<ProjectDetails[]> {
+        try {
+            const response = await this.client.get(this.hostUri + "projects/")
+
+            return response.data as ProjectDetails[];
+        } catch(e) {
+            console.dir(e);
+            debugger;
+
+            throw e;
+        }
     }
 
-    async getProject(projectId: string): Promise<Project> {
+    async getProject(projectId: string): Promise<ProjectDetails> {
         const response = await fetch(`localhost:8080/api/v1/projects/get?id=${projectId}`, {
             method: 'GET',
             mode: 'same-origin',
@@ -121,8 +131,14 @@ export default class ProjectService implements IProjectService {
     
         return response.json();
     };
+
+    async createProject(project: ProjectCreate): Promise<boolean> {
+        const response = await this.client.post(this.hostUri + "projects/", JSON.stringify(project));
+
+        return response.status == 200;
+    }
     
-    async saveProject(project: Project): Promise<any> {
+    async saveProject(project: ProjectDetails): Promise<any> {
         const response = await fetch(`localhost:8080/api/v1/projects/update?id=${project.id}`, {
             method: 'POST',
             mode: 'same-origin',
@@ -139,13 +155,14 @@ export default class ProjectService implements IProjectService {
         return response.json();
     };
 
-    emptyProject(): Project {
+    emptyProject(): ProjectDetails {
         return {
             id: "",
             name: "",
             statuses: [],
             tasks: [],
-            identifier: ""
+            abbreviation: "",
+            description: "",
         };
     }
 }

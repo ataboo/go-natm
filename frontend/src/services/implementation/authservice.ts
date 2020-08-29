@@ -15,7 +15,7 @@ export class AuthService implements IAuthService {
 
     async tryAuthenticate(): Promise<User|null> {       
         try {
-            const response = await this.client.get("http://localhost:8080/api/userinfo")
+            const response = await this.client.get("http://localhost:8080/api/v1/userinfo")
 
             return {
                 id: response.data.id ?? "Unset",
@@ -34,7 +34,7 @@ export class AuthService implements IAuthService {
 
     async logout(): Promise<boolean> {
         try {
-            await this.client.post("http://localhost:8080/api/logout");
+            await this.client.post("http://localhost:8080/api/v1/logout");
             return true;
         } catch(err) {
             console.error("Failed to logout: "+err);

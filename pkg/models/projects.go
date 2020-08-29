@@ -23,31 +23,34 @@ import (
 
 // Project is an object representing the database table.
 type Project struct {
-	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name       string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Identifier string    `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
-	Active     bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
-	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID           string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name         string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Abbreviation string    `boil:"abbreviation" json:"abbreviation" toml:"abbreviation" yaml:"abbreviation"`
+	Description  string    `boil:"description" json:"description" toml:"description" yaml:"description"`
+	Active       bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
+	CreatedAt    time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt    time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *projectR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L projectL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ProjectColumns = struct {
-	ID         string
-	Name       string
-	Identifier string
-	Active     string
-	CreatedAt  string
-	UpdatedAt  string
+	ID           string
+	Name         string
+	Abbreviation string
+	Description  string
+	Active       string
+	CreatedAt    string
+	UpdatedAt    string
 }{
-	ID:         "id",
-	Name:       "name",
-	Identifier: "identifier",
-	Active:     "active",
-	CreatedAt:  "created_at",
-	UpdatedAt:  "updated_at",
+	ID:           "id",
+	Name:         "name",
+	Abbreviation: "abbreviation",
+	Description:  "description",
+	Active:       "active",
+	CreatedAt:    "created_at",
+	UpdatedAt:    "updated_at",
 }
 
 // Generated where
@@ -83,19 +86,21 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 }
 
 var ProjectWhere = struct {
-	ID         whereHelperstring
-	Name       whereHelperstring
-	Identifier whereHelperstring
-	Active     whereHelperbool
-	CreatedAt  whereHelpertime_Time
-	UpdatedAt  whereHelpertime_Time
+	ID           whereHelperstring
+	Name         whereHelperstring
+	Abbreviation whereHelperstring
+	Description  whereHelperstring
+	Active       whereHelperbool
+	CreatedAt    whereHelpertime_Time
+	UpdatedAt    whereHelpertime_Time
 }{
-	ID:         whereHelperstring{field: "\"projects\".\"id\""},
-	Name:       whereHelperstring{field: "\"projects\".\"name\""},
-	Identifier: whereHelperstring{field: "\"projects\".\"identifier\""},
-	Active:     whereHelperbool{field: "\"projects\".\"active\""},
-	CreatedAt:  whereHelpertime_Time{field: "\"projects\".\"created_at\""},
-	UpdatedAt:  whereHelpertime_Time{field: "\"projects\".\"updated_at\""},
+	ID:           whereHelperstring{field: "\"projects\".\"id\""},
+	Name:         whereHelperstring{field: "\"projects\".\"name\""},
+	Abbreviation: whereHelperstring{field: "\"projects\".\"abbreviation\""},
+	Description:  whereHelperstring{field: "\"projects\".\"description\""},
+	Active:       whereHelperbool{field: "\"projects\".\"active\""},
+	CreatedAt:    whereHelpertime_Time{field: "\"projects\".\"created_at\""},
+	UpdatedAt:    whereHelpertime_Time{field: "\"projects\".\"updated_at\""},
 }
 
 // ProjectRels is where relationship names are stored.
@@ -125,8 +130,8 @@ func (*projectR) NewStruct() *projectR {
 type projectL struct{}
 
 var (
-	projectAllColumns            = []string{"id", "name", "identifier", "active", "created_at", "updated_at"}
-	projectColumnsWithoutDefault = []string{"id", "name", "identifier", "active"}
+	projectAllColumns            = []string{"id", "name", "abbreviation", "description", "active", "created_at", "updated_at"}
+	projectColumnsWithoutDefault = []string{"id", "name", "abbreviation", "description", "active"}
 	projectColumnsWithDefault    = []string{"created_at", "updated_at"}
 	projectPrimaryKeyColumns     = []string{"id"}
 )

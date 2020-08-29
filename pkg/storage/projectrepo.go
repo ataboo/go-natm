@@ -6,6 +6,7 @@ import (
 
 	"github.com/ataboo/go-natm/v4/pkg/api/data"
 	"github.com/ataboo/go-natm/v4/pkg/models"
+	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
@@ -38,22 +39,37 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 	).One(r.ctx, r.db)
 }
 
-func (r *ProjectRepository) Create(projectData *data.ProjectCreate) error {
+func (r *ProjectRepository) Create(projectData *data.ProjectCreate, ownerID string) error {
 	proj := models.Project{
-		Identifier: projectData.Identifier,
-		Active:     true,
-		Name:       projectData.Name,
+		ID:           uuid.New().String(),
+		Abbreviation: projectData.Abbreviation,
+		Description:  projectData.Description,
+		Active:       true,
+		Name:         projectData.Name,
 	}
 
-	return proj.Insert(r.ctx, r.db, boil.Infer())
+	projAssociation := models.ProjectAssociation{
+		ID:          uuid.New().String(),
+		Association: models.AssociationsEnumOwner,
+		ProjectID:   proj.ID,
+		UserID:      ownerID,
+	}
+
+	err := proj.Insert(r.ctx, r.db, boil.Infer())
+	if err != nil {
+		return err
+	}
+
+	return projAssociation.Insert(r.ctx, r.db, boil.Infer())
 }
 
 func (r *ProjectRepository) Update(projectData *data.ProjectUpdate) error {
 	proj := models.Project{
-		ID:         projectData.ID,
-		Active:     projectData.Active,
-		Identifier: projectData.Identifier,
-		Name:       projectData.Name,
+		ID:           projectData.ID,
+		Active:       projectData.Active,
+		Abbreviation: projectData.Abbreviation,
+		Description:  projectData.Description,
+		Name:         projectData.Name,
 	}
 
 	_, err := proj.Update(r.ctx, r.db, boil.Infer())

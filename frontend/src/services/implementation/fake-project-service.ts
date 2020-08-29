@@ -1,4 +1,4 @@
-import { Project } from "../../models/project";
+import { ProjectDetails, ProjectCreate } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import ProjectService from "./project-service";
 import { User } from "../../models/user";
@@ -9,7 +9,7 @@ import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
 
 export class FakeProjectService implements IProjectService {
-    cachedProjectData: Project
+    cachedProjectData: ProjectDetails
     realService: IProjectService
     activeTaskId: string
 
@@ -40,7 +40,8 @@ export class FakeProjectService implements IProjectService {
         this.cachedProjectData = {
             id: "1",
             name: "My Project",
-            identifier: "PRJ",
+            abbreviation: "PRJ",
+            description: "description here",
             statuses: [
                 {
                     id: "1",
@@ -120,6 +121,10 @@ export class FakeProjectService implements IProjectService {
                 }
             ]
         }
+    }
+
+    createProject(project: ProjectCreate): Promise<boolean> {
+        return this.realService.createProject(project);
     }
 
     async updateTask(updateData: TaskUpdate): Promise<boolean> {
@@ -212,27 +217,27 @@ export class FakeProjectService implements IProjectService {
         return this.activeTaskId;
     }
 
-    emptyProject(): Project {
+    emptyProject(): ProjectDetails {
         return this.realService.emptyProject();
     }
 
-    swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
+    swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
         return this.realService.swapTasks(project, draggedTaskId, droppedTaskStatusId, droppedTaskOrdinal);
     }
 
-    moveCardToStatus(project: Project, draggedTaskId: string, statusId: string): boolean {
+    moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean {
         return this.realService.moveCardToStatus(project, draggedTaskId, statusId);
     }
 
-    async getProjectList(): Promise<Project[]> {
-        return [this.cachedProjectData];
+    async getProjectList(): Promise<ProjectDetails[]> {
+        return this.realService.getProjectList()
     }
 
-    async getProject(projectId: string) : Promise<Project> {
+    async getProject(projectId: string) : Promise<ProjectDetails> {
         return this.cachedProjectData;
     }
 
-    async saveProject(project: Project): Promise<any> {
+    async saveProject(project: ProjectDetails): Promise<any> {
         this.cachedProjectData = project;
 
         console.log("saved project!");

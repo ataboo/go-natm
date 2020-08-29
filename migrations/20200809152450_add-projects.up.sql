@@ -4,7 +4,8 @@ CREATE TYPE associations_enum as ENUM('Owner', 'Writer', 'Reader');
 CREATE TABLE projects (
    id UUID PRIMARY KEY,
    name VARCHAR (64) NOT NULL,
-   identifier VARCHAR (64) NOT NULL,
+   abbreviation VARCHAR (64) NOT NULL,
+   description VARCHAR (128) NOT NULL,
    active BOOLEAN NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()

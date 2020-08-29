@@ -1,19 +1,21 @@
-import { Project } from "../../models/project";
+import { ProjectDetails, ProjectCreate } from "../../models/project";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
 
 export interface IProjectService {
-    swapTasks(project: Project, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean
+    swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean
 
-    moveCardToStatus(project: Project, draggedTaskId: string, statusId: string): boolean;
+    moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean;
 
-    getProjectList(): Promise<Project[]>;
+    getProjectList(): Promise<ProjectDetails[]>;
 
-    getProject(id: string): Promise<Project>
+    getProject(id: string): Promise<ProjectDetails>
 
-    saveProject(project: Project): Promise<any>;
+    saveProject(project: ProjectDetails): Promise<any>;
 
-    emptyProject(): Project;
+    createProject(project: ProjectCreate): Promise<boolean>
+
+    emptyProject(): ProjectDetails;
 
     setActiveTaskId(id: string): Promise<boolean>;
 
@@ -27,5 +29,5 @@ export interface IProjectService {
 
     archiveStatus(statusId: string): Promise<boolean>;
     
-    updateTask(updateData: TaskUpdate): Promise<boolean> 
+    updateTask(updateData: TaskUpdate): Promise<boolean>
 }

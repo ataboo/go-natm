@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/ataboo/go-natm/v4/pkg/api/project"
 	"github.com/ataboo/go-natm/v4/pkg/database"
 	"github.com/ataboo/go-natm/v4/pkg/oauth"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
@@ -44,7 +45,13 @@ func main() {
 	router := gin.Default()
 	container := buildContainer()
 
-	err = container.Invoke(func(google *oauth.GoogleOAuthService, jwtService *oauth.JWTRouteService, db *sql.DB, userRepo *storage.UserRepository) {
+	err = container.Invoke(func(
+		google *oauth.GoogleOAuthService,
+		jwtService *oauth.JWTRouteService,
+		db *sql.DB,
+		userRepo *storage.UserRepository,
+		projectRepo *storage.ProjectRepository,
+	) {
 		defer db.Close()
 		err := database.MigrateDB(db)
 		if err != nil {
@@ -55,7 +62,7 @@ func main() {
 			c.String(http.StatusOK, "Hello world!")
 		})
 
-		api := router.Group("/api", AllowCrossSite(), jwtService.AuthJWTMiddleware())
+		api := router.Group("/api/v1", AllowCrossSite(), jwtService.AuthJWTMiddleware())
 		{
 			api.GET("/", func(c *gin.Context) {
 				userID, ok := c.Get("acting_user_id")
@@ -82,6 +89,8 @@ func main() {
 				oauth.ClearJWTCookie(c)
 				c.Status(http.StatusOK)
 			})
+
+			project.RegisterRoutes(api, projectRepo)
 		}
 
 		authGroup := router.Group("/auth/")
@@ -99,6 +108,7 @@ func buildContainer() *dig.Container {
 	container.Provide(database.NewSqlDB)
 	container.Provide(oauth.NewJWTFactory)
 	container.Provide(storage.NewUserRepository)
+	container.Provide(storage.NewProjectRepository)
 	container.Provide(oauth.LoadJWTConfig)
 	container.Provide(oauth.NewGooglOAuthHandler)
 	container.Provide(oauth.NewJWTRouteService)

@@ -19,11 +19,11 @@ func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository) {
 	projectRepo = pr
 	ctx = context.Background()
 
-	g := e.Group("projects/")
+	g := e.Group("/projects")
 
 	g.GET("/", handleGetList)
 	g.GET("/:projectID", handleGet)
-	// g.POST("/", handleCreate)
+	g.POST("/", handleCreate)
 	// g.PUT("/:projectID", handleUpdate)
 	// g.DELETE("/:projectID", handleDelete)
 }
@@ -44,7 +44,8 @@ func handleGetList(c *gin.Context) {
 		projDatas[i] = data.ProjectGrid{
 			ID:              assoc.R.Project.ID,
 			AssociationType: assoc.Association,
-			Identifier:      assoc.R.Project.Identifier,
+			Abbreviation:    assoc.R.Project.Abbreviation,
+			Description:     assoc.R.Project.Description,
 			Name:            assoc.R.Project.Name,
 		}
 	}
@@ -86,10 +87,29 @@ func handleGet(c *gin.Context) {
 	projData := data.ProjectDetail{
 		AssociationType: association.Association,
 		ID:              association.R.Project.ID,
-		Identifier:      association.R.Project.Identifier,
+		Abbreviation:    association.R.Project.Abbreviation,
+		Description:     association.R.Project.Description,
 		Name:            association.R.Project.Name,
 		Tasks:           tasks,
 	}
 
 	c.JSON(http.StatusOK, projData)
+}
+
+func handleCreate(c *gin.Context) {
+	userID := data.MustGetActingUserID(c)
+
+	createData := data.ProjectCreate{}
+	err := c.BindJSON(&createData)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = projectRepo.Create(&createData, userID)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
 }
