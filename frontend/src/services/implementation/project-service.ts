@@ -117,7 +117,7 @@ export default class ProjectService implements IProjectService {
     }
 
     async getProject(projectId: string): Promise<ProjectDetails> {
-        const response = await fetch(`localhost:8080/api/v1/projects/get?id=${projectId}`, {
+        const response = await fetch(`${this.hostUri}projects/get?id=${projectId}`, {
             method: 'GET',
             mode: 'same-origin',
             cache: 'no-cache',
@@ -139,7 +139,7 @@ export default class ProjectService implements IProjectService {
     }
     
     async saveProject(project: ProjectDetails): Promise<any> {
-        const response = await fetch(`localhost:8080/api/v1/projects/update?id=${project.id}`, {
+        const response = await fetch(`${this.hostUri}projects/update?id=${project.id}`, {
             method: 'POST',
             mode: 'same-origin',
             cache: 'no-cache',

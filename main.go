@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/ataboo/go-natm/v4/pkg/api/project"
+	"github.com/ataboo/go-natm/v4/pkg/common"
 	"github.com/ataboo/go-natm/v4/pkg/database"
 	"github.com/ataboo/go-natm/v4/pkg/oauth"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
@@ -41,6 +43,8 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to load .env file", err)
 	}
+
+	common.AssertEnvVarsSet()
 
 	router := gin.Default()
 	container := buildContainer()
@@ -98,7 +102,7 @@ func main() {
 		google.RegisterGoogleRoutes(authGroup)
 		jwtService.RegisterJWTRoutes(authGroup)
 
-		router.Run(":8080")
+		router.Run(os.Getenv(common.EnvServerHostname))
 	})
 }
 
@@ -119,7 +123,7 @@ func buildContainer() *dig.Container {
 func AllowCrossSite() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Content-Type", "application/json")
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", os.Getenv(common.EnvFrontendHostname))
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")

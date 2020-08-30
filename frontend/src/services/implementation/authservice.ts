@@ -5,17 +5,21 @@ import axios, { AxiosInstance } from "axios";
 export class AuthService implements IAuthService {
     user: User | null;
     client: AxiosInstance;
+    hostUri: string
+    
     
     constructor() {
         this.user = null;
         this.client = axios.create({
             withCredentials: true,
         });
+
+        this.hostUri = "http://localhost:8080/api/v1/";
     }
 
     async tryAuthenticate(): Promise<User|null> {       
         try {
-            const response = await this.client.get("http://localhost:8080/api/v1/userinfo")
+            const response = await this.client.get(`${this.hostUri}userinfo`)
 
             return {
                 id: response.data.id ?? "Unset",
@@ -34,7 +38,7 @@ export class AuthService implements IAuthService {
 
     async logout(): Promise<boolean> {
         try {
-            await this.client.post("http://localhost:8080/api/v1/logout");
+            await this.client.post(`${this.hostUri}logout`);
             return true;
         } catch(err) {
             console.error("Failed to logout: "+err);

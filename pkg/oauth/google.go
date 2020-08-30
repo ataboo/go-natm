@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ataboo/go-natm/v4/pkg/common"
 	"github.com/ataboo/go-natm/v4/pkg/models"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
 	"github.com/gin-gonic/gin"
@@ -111,15 +112,28 @@ func (h *GoogleOAuthService) handleAuthCallback(c *gin.Context) {
 	accessToken := h.jwtFactory.CreateAccessToken(user.ID)
 	c.SetCookie("jwt-token", accessToken, h.jwtFactory.config.IssueExpMins*60, "", "", true, true)
 
-	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
+	c.Redirect(http.StatusTemporaryRedirect, os.Getenv(common.EnvFrontendHostname))
 }
 
 func loadOAuthConfig() *oauth2.Config {
 	return &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_OAUTH_CLIENT"),
-		ClientSecret: os.Getenv("GOOGLE_OAUTH_SECRET"),
+		ClientID:     os.Getenv(common.EnvGoogleOauthClient),
+		ClientSecret: os.Getenv(common.EnvGoogleOauthSecret),
 		Endpoint:     google.Endpoint,
-		RedirectURL:  "http://localhost:8080/auth/google/callback",
+		RedirectURL:  os.Getenv(common.EnvServerHostname) + "/auth/google/callback",
 		Scopes:       []string{oauthapi.UserinfoProfileScope, oauthapi.UserinfoEmailScope},
 	}
+}
+
+func validateRequiredEnvVars() {
+
+}
+
+func assertEnvVarSet(varName string) bool {
+	if os.Getenv(varName) == "" {
+		fmt.Println("'" + varName + "' env var must be set")
+		return false
+	}
+
+	return true
 }
