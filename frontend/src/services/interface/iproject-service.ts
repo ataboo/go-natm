@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate } from "../../models/project";
+import { ProjectDetails, ProjectCreate, ProjectGrid } from "../../models/project";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
 
@@ -7,13 +7,15 @@ export interface IProjectService {
 
     moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean;
 
-    getProjectList(): Promise<ProjectDetails[]>;
+    getProjectList(): Promise<ProjectGrid[]>;
 
-    getProject(id: string): Promise<ProjectDetails>
+    getProject(id: string): Promise<ProjectDetails>;
 
     saveProject(project: ProjectDetails): Promise<any>;
 
-    createProject(project: ProjectCreate): Promise<boolean>
+    createProject(project: ProjectCreate): Promise<boolean>;
+
+    archiveProject(id: string): Promise<boolean>;
 
     emptyProject(): ProjectDetails;
 

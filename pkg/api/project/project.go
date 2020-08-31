@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/ataboo/go-natm/v4/pkg/api/data"
+	"github.com/ataboo/go-natm/v4/pkg/common"
 	"github.com/ataboo/go-natm/v4/pkg/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +25,7 @@ func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository) {
 	g.GET("/", handleGetList)
 	g.GET("/:projectID", handleGet)
 	g.POST("/", handleCreate)
+	g.POST("/archive/", handleArchive)
 	// g.PUT("/:projectID", handleUpdate)
 	// g.DELETE("/:projectID", handleDelete)
 }
@@ -38,16 +40,21 @@ func handleGetList(c *gin.Context) {
 		return
 	}
 
-	projDatas := make([]data.ProjectGrid, len(associations))
+	projDatas := make([]data.ProjectGrid, 0)
 
-	for i, assoc := range associations {
-		projDatas[i] = data.ProjectGrid{
+	for _, assoc := range associations {
+		if !assoc.R.Project.Active {
+			continue
+		}
+
+		projDatas = append(projDatas, data.ProjectGrid{
 			ID:              assoc.R.Project.ID,
 			AssociationType: assoc.Association,
 			Abbreviation:    assoc.R.Project.Abbreviation,
 			Description:     assoc.R.Project.Description,
 			Name:            assoc.R.Project.Name,
-		}
+			LastUpdated:     assoc.R.Project.UpdatedAt.Unix(),
+		})
 	}
 
 	c.JSON(200, projDatas)
@@ -62,7 +69,7 @@ func handleGet(c *gin.Context) {
 	}
 
 	association, err := projectRepo.Find(projectID, userID)
-	if err != nil {
+	if err != nil || association == nil {
 		c.AbortWithStatus(http.StatusNotFound)
 		logger.Println("Failed to find proj with id", projectID)
 		return
@@ -111,5 +118,29 @@ func handleCreate(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+}
 
+func handleArchive(c *gin.Context) {
+	userID := data.MustGetActingUserID(c)
+
+	archiveData := data.ProjectArchive{}
+	err := c.BindJSON(&archiveData)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = projectRepo.Archive(archiveData.ProjectID, userID)
+	if err != nil {
+		statusErr, ok := err.(*common.ErrorWithStatus)
+		if !ok {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		} else {
+			c.AbortWithStatus(statusErr.Code)
+		}
+
+		return
+	}
+
+	c.Status(200)
 }

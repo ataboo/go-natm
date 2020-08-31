@@ -13,6 +13,14 @@ export interface ProjectCreate {
     description: string;
 }
 
+export interface ProjectGrid {
+    id: string;
+    name: string;
+    abbreviation: string;
+    associationType: ProjectAssociation,
+    lastUpdated: number
+}
+
 export const cloneProject = (oldProject: ProjectDetails) => {
     return {
         id: oldProject.id,
@@ -23,3 +31,9 @@ export const cloneProject = (oldProject: ProjectDetails) => {
         statuses: [...oldProject.statuses]
     }
 }
+
+export enum ProjectAssociation {
+    Owner,
+    Writer,
+    Reader
+};

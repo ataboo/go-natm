@@ -8,10 +8,11 @@ import (
 
 const (
 	EnvJWTAudience       = "JWT_AUDIENCE"
-	EnvJWTExpiration     = "JWT_EXPIRATION"
 	EnvJWTIssuer         = "JWT_ISSUER"
 	EnvJWTSecret         = "JWT_SECRET"
 	EnvJWTSubject        = "JWT_SUBJECT"
+	EnvJWTRefreshExpMins = "JWT_REFRESH_EXP_MINS"
+	EnvJWTIssueExpMins   = "JWT_ISSUE_EXP_MINS"
 	EnvGoogleOauthClient = "GOOGLE_OAUTH_CLIENT"
 	EnvGoogleOauthSecret = "GOOGLE_OAUTH_SECRET"
 	EnvServerHostname    = "SERVER_HOSTNAME"
@@ -21,10 +22,11 @@ const (
 func AssertEnvVarsSet() {
 	allVars := []string{
 		EnvJWTAudience,
-		EnvJWTExpiration,
 		EnvJWTIssuer,
 		EnvJWTSecret,
 		EnvJWTSubject,
+		EnvJWTRefreshExpMins,
+		EnvJWTIssueExpMins,
 		EnvGoogleOauthClient,
 		EnvGoogleOauthSecret,
 		EnvServerHostname,

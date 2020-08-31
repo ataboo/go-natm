@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate } from "../../models/project";
+import { ProjectDetails, ProjectCreate, ProjectGrid } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import ProjectService from "./project-service";
 import { User } from "../../models/user";
@@ -123,8 +123,12 @@ export class FakeProjectService implements IProjectService {
         }
     }
 
-    createProject(project: ProjectCreate): Promise<boolean> {
-        return this.realService.createProject(project);
+    async createProject(project: ProjectCreate): Promise<boolean> {
+        return await this.realService.createProject(project);
+    }
+
+    async archiveProject(id: string): Promise<boolean> {
+        return await this.realService.archiveProject(id)
     }
 
     async updateTask(updateData: TaskUpdate): Promise<boolean> {
@@ -229,7 +233,7 @@ export class FakeProjectService implements IProjectService {
         return this.realService.moveCardToStatus(project, draggedTaskId, statusId);
     }
 
-    async getProjectList(): Promise<ProjectDetails[]> {
+    async getProjectList(): Promise<ProjectGrid[]> {
         return this.realService.getProjectList()
     }
 

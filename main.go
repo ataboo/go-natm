@@ -102,7 +102,7 @@ func main() {
 		google.RegisterGoogleRoutes(authGroup)
 		jwtService.RegisterJWTRoutes(authGroup)
 
-		router.Run(os.Getenv(common.EnvServerHostname))
+		router.Run("localhost:8080")
 	})
 }
 

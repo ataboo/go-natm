@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ataboo/go-natm/v4/pkg/common"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
@@ -139,16 +140,16 @@ func claimsAreValid(config JWTAuthConfig, claims jwt.MapClaims) bool {
 }
 
 func LoadJWTConfig() *JWTAuthConfig {
-	issueExpMins, _ := strconv.Atoi(os.Getenv("JWT_ISSUE_EXP_MINS"))
-	refreshExpMins, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_EXP_MINS"))
+	issueExpMins, _ := strconv.Atoi(os.Getenv(common.EnvJWTIssueExpMins))
+	refreshExpMins, _ := strconv.Atoi(os.Getenv(common.EnvJWTRefreshExpMins))
 
 	return &JWTAuthConfig{
-		Audience:       os.Getenv("JWT_AUDIENCE"),
+		Audience:       os.Getenv(common.EnvJWTAudience),
 		IssueExpMins:   issueExpMins,
 		RefreshExpMins: refreshExpMins,
-		Issuer:         os.Getenv("JWT_ISSUER"),
-		Secret:         os.Getenv("JWT_SECRET"),
-		Subject:        os.Getenv("JWT_SUBJECT"),
+		Issuer:         os.Getenv(common.EnvJWTIssuer),
+		Secret:         os.Getenv(common.EnvJWTSecret),
+		Subject:        os.Getenv(common.EnvJWTSubject),
 	}
 }
 

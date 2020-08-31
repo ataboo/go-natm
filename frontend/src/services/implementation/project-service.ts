@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate as ProjectCreate } from "../../models/project";
+import { ProjectDetails, ProjectCreate as ProjectCreate, ProjectGrid } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
@@ -103,11 +103,11 @@ export default class ProjectService implements IProjectService {
         return true;
     }
     
-    async getProjectList(): Promise<ProjectDetails[]> {
+    async getProjectList(): Promise<ProjectGrid[]> {
         try {
             const response = await this.client.get(this.hostUri + "projects/")
 
-            return response.data as ProjectDetails[];
+            return response.data as ProjectGrid[];
         } catch(e) {
             console.dir(e);
             debugger;
@@ -117,7 +117,7 @@ export default class ProjectService implements IProjectService {
     }
 
     async getProject(projectId: string): Promise<ProjectDetails> {
-        const response = await fetch(`${this.hostUri}projects/get?id=${projectId}`, {
+        const response = await fetch(`${this.hostUri}projects/get?projectID=${projectId}`, {
             method: 'GET',
             mode: 'same-origin',
             cache: 'no-cache',
@@ -134,6 +134,14 @@ export default class ProjectService implements IProjectService {
 
     async createProject(project: ProjectCreate): Promise<boolean> {
         const response = await this.client.post(this.hostUri + "projects/", JSON.stringify(project));
+
+        return response.status == 200;
+    }
+
+    async archiveProject(id: string): Promise<boolean> {
+        const response = await this.client.post(this.hostUri + "projects/archive/", JSON.stringify({
+            projectID: id
+        }));
 
         return response.status == 200;
     }
