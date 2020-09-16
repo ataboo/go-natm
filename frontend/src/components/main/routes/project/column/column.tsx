@@ -17,16 +17,18 @@ type ColumnProps = {
 
 export function Column({tasks, status, cardActions}: ColumnProps) {
     const renderCards = () => {
+        let cards;
+        
         if (tasks.length === 0) {
-            return (<DropZone status={status} cardActions={cardActions} />)
+            cards = [(<DropZone status={status} cardActions={cardActions} key="drop-zone" />)];
+        } else {
+            cards = tasks.map(t => (<Card 
+                key={t.id}
+                task={t}  
+                statusId={t.statusId}
+                cardActions={cardActions}
+            />))
         }
-    
-        const cards = tasks.map(t => (<Card 
-            key={t.id}
-            task={t}  
-            statusId={t.statusId}
-            cardActions={cardActions}
-        />))
 
         cards.push((<AddTask createTask={(data) => cardActions.createTask(data)} statusId={status.id} key="add-task" />));
 

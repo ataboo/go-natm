@@ -25,12 +25,12 @@ import (
 // Task is an object representing the database table.
 type Task struct {
 	ID           string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ProjectID    string      `boil:"project_id" json:"project_id" toml:"project_id" yaml:"project_id"`
 	TaskStatusID string      `boil:"task_status_id" json:"task_status_id" toml:"task_status_id" yaml:"task_status_id"`
-	Identifier   string      `boil:"identifier" json:"identifier" toml:"identifier" yaml:"identifier"`
+	Number       int         `boil:"number" json:"number" toml:"number" yaml:"number"`
 	AssigneeID   null.String `boil:"assignee_id" json:"assignee_id,omitempty" toml:"assignee_id" yaml:"assignee_id,omitempty"`
 	Ordinal      int         `boil:"ordinal" json:"ordinal" toml:"ordinal" yaml:"ordinal"`
 	Title        string      `boil:"title" json:"title" toml:"title" yaml:"title"`
+	Estimate     null.Int    `boil:"estimate" json:"estimate,omitempty" toml:"estimate" yaml:"estimate,omitempty"`
 	Description  string      `boil:"description" json:"description" toml:"description" yaml:"description"`
 	TaskType     string      `boil:"task_type" json:"task_type" toml:"task_type" yaml:"task_type"`
 	CreatedAt    time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
@@ -42,24 +42,24 @@ type Task struct {
 
 var TaskColumns = struct {
 	ID           string
-	ProjectID    string
 	TaskStatusID string
-	Identifier   string
+	Number       string
 	AssigneeID   string
 	Ordinal      string
 	Title        string
+	Estimate     string
 	Description  string
 	TaskType     string
 	CreatedAt    string
 	UpdatedAt    string
 }{
 	ID:           "id",
-	ProjectID:    "project_id",
 	TaskStatusID: "task_status_id",
-	Identifier:   "identifier",
+	Number:       "number",
 	AssigneeID:   "assignee_id",
 	Ordinal:      "ordinal",
 	Title:        "title",
+	Estimate:     "estimate",
 	Description:  "description",
 	TaskType:     "task_type",
 	CreatedAt:    "created_at",
@@ -91,26 +91,49 @@ func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelpernull_Int struct{ field string }
+
+func (w whereHelpernull_Int) EQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Int) NEQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_Int) LT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Int) LTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Int) GT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Int) GTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var TaskWhere = struct {
 	ID           whereHelperstring
-	ProjectID    whereHelperstring
 	TaskStatusID whereHelperstring
-	Identifier   whereHelperstring
+	Number       whereHelperint
 	AssigneeID   whereHelpernull_String
 	Ordinal      whereHelperint
 	Title        whereHelperstring
+	Estimate     whereHelpernull_Int
 	Description  whereHelperstring
 	TaskType     whereHelperstring
 	CreatedAt    whereHelpertime_Time
 	UpdatedAt    whereHelpertime_Time
 }{
 	ID:           whereHelperstring{field: "\"tasks\".\"id\""},
-	ProjectID:    whereHelperstring{field: "\"tasks\".\"project_id\""},
 	TaskStatusID: whereHelperstring{field: "\"tasks\".\"task_status_id\""},
-	Identifier:   whereHelperstring{field: "\"tasks\".\"identifier\""},
+	Number:       whereHelperint{field: "\"tasks\".\"number\""},
 	AssigneeID:   whereHelpernull_String{field: "\"tasks\".\"assignee_id\""},
 	Ordinal:      whereHelperint{field: "\"tasks\".\"ordinal\""},
 	Title:        whereHelperstring{field: "\"tasks\".\"title\""},
+	Estimate:     whereHelpernull_Int{field: "\"tasks\".\"estimate\""},
 	Description:  whereHelperstring{field: "\"tasks\".\"description\""},
 	TaskType:     whereHelperstring{field: "\"tasks\".\"task_type\""},
 	CreatedAt:    whereHelpertime_Time{field: "\"tasks\".\"created_at\""},
@@ -120,12 +143,10 @@ var TaskWhere = struct {
 // TaskRels is where relationship names are stored.
 var TaskRels = struct {
 	Assignee   string
-	Project    string
 	TaskStatus string
 	WorkLogs   string
 }{
 	Assignee:   "Assignee",
-	Project:    "Project",
 	TaskStatus: "TaskStatus",
 	WorkLogs:   "WorkLogs",
 }
@@ -133,7 +154,6 @@ var TaskRels = struct {
 // taskR is where relationships are stored.
 type taskR struct {
 	Assignee   *User        `boil:"Assignee" json:"Assignee" toml:"Assignee" yaml:"Assignee"`
-	Project    *Project     `boil:"Project" json:"Project" toml:"Project" yaml:"Project"`
 	TaskStatus *TaskStatus  `boil:"TaskStatus" json:"TaskStatus" toml:"TaskStatus" yaml:"TaskStatus"`
 	WorkLogs   WorkLogSlice `boil:"WorkLogs" json:"WorkLogs" toml:"WorkLogs" yaml:"WorkLogs"`
 }
@@ -147,8 +167,8 @@ func (*taskR) NewStruct() *taskR {
 type taskL struct{}
 
 var (
-	taskAllColumns            = []string{"id", "project_id", "task_status_id", "identifier", "assignee_id", "ordinal", "title", "description", "task_type", "created_at", "updated_at"}
-	taskColumnsWithoutDefault = []string{"id", "project_id", "task_status_id", "identifier", "assignee_id", "ordinal", "title", "description", "task_type"}
+	taskAllColumns            = []string{"id", "task_status_id", "number", "assignee_id", "ordinal", "title", "estimate", "description", "task_type", "created_at", "updated_at"}
+	taskColumnsWithoutDefault = []string{"id", "task_status_id", "number", "assignee_id", "ordinal", "title", "estimate", "description", "task_type"}
 	taskColumnsWithDefault    = []string{"created_at", "updated_at"}
 	taskPrimaryKeyColumns     = []string{"id"}
 )
@@ -442,20 +462,6 @@ func (o *Task) Assignee(mods ...qm.QueryMod) userQuery {
 	return query
 }
 
-// Project pointed to by the foreign key.
-func (o *Task) Project(mods ...qm.QueryMod) projectQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.ProjectID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Projects(queryMods...)
-	queries.SetFrom(query.Query, "\"projects\"")
-
-	return query
-}
-
 // TaskStatus pointed to by the foreign key.
 func (o *Task) TaskStatus(mods ...qm.QueryMod) taskStatusQuery {
 	queryMods := []qm.QueryMod{
@@ -591,110 +597,6 @@ func (taskL) LoadAssignee(ctx context.Context, e boil.ContextExecutor, singular 
 					foreign.R = &userR{}
 				}
 				foreign.R.AssigneeTasks = append(foreign.R.AssigneeTasks, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadProject allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (taskL) LoadProject(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTask interface{}, mods queries.Applicator) error {
-	var slice []*Task
-	var object *Task
-
-	if singular {
-		object = maybeTask.(*Task)
-	} else {
-		slice = *maybeTask.(*[]*Task)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &taskR{}
-		}
-		args = append(args, object.ProjectID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &taskR{}
-			}
-
-			for _, a := range args {
-				if a == obj.ProjectID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.ProjectID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`projects`),
-		qm.WhereIn(`projects.id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Project")
-	}
-
-	var resultSlice []*Project
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Project")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for projects")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for projects")
-	}
-
-	if len(taskAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Project = foreign
-		if foreign.R == nil {
-			foreign.R = &projectR{}
-		}
-		foreign.R.Tasks = append(foreign.R.Tasks, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ProjectID == foreign.ID {
-				local.R.Project = foreign
-				if foreign.R == nil {
-					foreign.R = &projectR{}
-				}
-				foreign.R.Tasks = append(foreign.R.Tasks, local)
 				break
 			}
 		}
@@ -982,53 +884,6 @@ func (o *Task) RemoveAssignee(ctx context.Context, exec boil.ContextExecutor, re
 		related.R.AssigneeTasks = related.R.AssigneeTasks[:ln-1]
 		break
 	}
-	return nil
-}
-
-// SetProject of the task to the related item.
-// Sets o.R.Project to related.
-// Adds o to related.R.Tasks.
-func (o *Task) SetProject(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Project) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"tasks\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"project_id"}),
-		strmangle.WhereClause("\"", "\"", 2, taskPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.ProjectID = related.ID
-	if o.R == nil {
-		o.R = &taskR{
-			Project: related,
-		}
-	} else {
-		o.R.Project = related
-	}
-
-	if related.R == nil {
-		related.R = &projectR{
-			Tasks: TaskSlice{o},
-		}
-	} else {
-		related.R.Tasks = append(related.R.Tasks, o)
-	}
-
 	return nil
 }
 

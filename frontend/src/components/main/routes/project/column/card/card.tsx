@@ -31,7 +31,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     });
 
     const activeTaskTick = () => {
-        setCurrentTime(currentTime.clone().add(1, "second"));
+        setCurrentTime(currentTime + 1);
     }
     
     function onDragStart(event: React.DragEvent<HTMLDivElement>, {id} : DragStartProps) {
@@ -59,7 +59,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-    return (<div className="timing-indicator">{moment.utc(currentTime.asMilliseconds()).format("H:mm")} | {task.timing.estimated ? task.timing.estimated!.asHours() + "h" : '-'}</div>)
+        return (<div className="timing-indicator">{moment.utc(currentTime / 1000).format("H:mm")} | {task.timing.estimated ? moment.utc(task.timing.estimated!).hours() + "h" : '-'}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();

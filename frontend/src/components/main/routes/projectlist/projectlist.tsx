@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ProjectGrid } from "../../../../models/project";
 import { FakeProjectService } from "../../../../services/implementation/fake-project-service";
 import { ModalForm } from "../../modalform";
-import { Form, Container, Table, Row, Popover } from "react-bootstrap";
+import { Form, Container, Table, Row, Popover, Card } from "react-bootstrap";
 import { Plus, Trash } from "react-bootstrap-icons";
 import moment from "moment";
 
@@ -108,17 +108,22 @@ export const ProjectList = () => {
     }
     
     return (<Container>
-        {renderProjects(projects)}
-        <br/>
-        <button className="btn btn-primary m-2 p-1" onClick={() => setShowCreate(true)}><Plus size={24} /> <span className="mr-1">Create Project</span></button>
-        <ModalForm
-            focusElement={nameInput}
-            formContent={formContent}
-            formElementId="project-create-form"
-            onSubmit={handleCreateProject}
-            setShow={setShowCreate}
-            show={showCreate}
-            title="Create New Project"
-        />
+        <Card>
+            <Card.Body>
+                <Card.Title>Projects<button className="btn btn-outline-primary btn-sm mr-3 float-right" onClick={() => setShowCreate(true)}>Create New</button>
+            </Card.Title>
+                
+            {renderProjects(projects)}
+            <ModalForm
+                focusElement={nameInput}
+                formContent={formContent}
+                formElementId="project-create-form"
+                onSubmit={handleCreateProject}
+                setShow={setShowCreate}
+                show={showCreate}
+                title="Create New Project"
+            />
+            </Card.Body>
+        </Card>
     </Container>)
 };

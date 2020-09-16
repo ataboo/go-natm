@@ -1,36 +1,26 @@
-package project
+package routes
 
 import (
-	"context"
-	"log"
 	"net/http"
-	"os"
+	"strconv"
 
-	"github.com/ataboo/go-natm/v4/pkg/api/data"
-	"github.com/ataboo/go-natm/v4/pkg/common"
-	"github.com/ataboo/go-natm/v4/pkg/storage"
+	"github.com/ataboo/go-natm/pkg/api/data"
+	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
-var projectRepo *storage.ProjectRepository
-var ctx context.Context
-var logger = log.New(os.Stdout, "go-natm", 0)
-
-func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository) {
-	projectRepo = pr
-	ctx = context.Background()
-
+func registerProjectRoutes(e *gin.RouterGroup) {
 	g := e.Group("/projects")
 
-	g.GET("/", handleGetList)
-	g.GET("/:projectID", handleGet)
-	g.POST("/", handleCreate)
-	g.POST("/archive/", handleArchive)
+	g.GET("/", handleGetProjects)
+	g.GET("/:projectID", handleGetProject)
+	g.POST("/", handleCreateProject)
+	g.POST("/archive/", handleArchiveProject)
 	// g.PUT("/:projectID", handleUpdate)
 	// g.DELETE("/:projectID", handleDelete)
 }
 
-func handleGetList(c *gin.Context) {
+func handleGetProjects(c *gin.Context) {
 	userID := data.MustGetActingUserID(c)
 	associations, err := projectRepo.ListAssociated(userID)
 
@@ -60,13 +50,9 @@ func handleGetList(c *gin.Context) {
 	c.JSON(200, projDatas)
 }
 
-func handleGet(c *gin.Context) {
+func handleGetProject(c *gin.Context) {
 	userID := data.MustGetActingUserID(c)
-	projectID, ok := c.Params.Get("projectID")
-	if !ok {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
+	projectID := c.Param("projectID")
 
 	association, err := projectRepo.Find(projectID, userID)
 	if err != nil || association == nil {
@@ -75,19 +61,31 @@ func handleGet(c *gin.Context) {
 		return
 	}
 
-	taskModels := association.R.Project.R.Tasks
-	tasks := make([]data.TaskGrid, len(taskModels))
-	for i, t := range taskModels {
-		tasks[i] = data.TaskGrid{
-			ID:         t.ID,
-			Identifier: t.ID,
-			Name:       t.Title,
-			StatusID:   t.TaskStatusID,
-			Type:       t.TaskType,
-			Timing: data.TimingGrid{
-				Current:  "TODO query",
-				Estimate: "TODO query",
-			},
+	taskStatuses := association.R.Project.R.TaskStatuses
+	statusDatas := make([]data.StatusRead, len(taskStatuses))
+	taskDatas := make([]data.TaskGrid, 0)
+	for i, s := range taskStatuses {
+		statusTasks := make([]data.TaskGrid, len(s.R.Tasks))
+		for j, t := range s.R.Tasks {
+			statusTasks[j] = data.TaskGrid{
+				Description: t.Description,
+				ID:          t.ID,
+				Identifier:  association.R.Project.Abbreviation + "-" + strconv.Itoa(t.Number),
+				Timing: data.TimingGrid{
+					Estimate: "",
+					Current:  "",
+				},
+				StatusID: t.TaskStatusID,
+				Type:     t.TaskType,
+				Title:    t.Title,
+			}
+		}
+
+		taskDatas = append(taskDatas, statusTasks...)
+
+		statusDatas[i] = data.StatusRead{
+			ID:   s.ID,
+			Name: s.Name,
 		}
 	}
 
@@ -97,13 +95,14 @@ func handleGet(c *gin.Context) {
 		Abbreviation:    association.R.Project.Abbreviation,
 		Description:     association.R.Project.Description,
 		Name:            association.R.Project.Name,
-		Tasks:           tasks,
+		Statuses:        statusDatas,
+		Tasks:           taskDatas,
 	}
 
 	c.JSON(http.StatusOK, projData)
 }
 
-func handleCreate(c *gin.Context) {
+func handleCreateProject(c *gin.Context) {
 	userID := data.MustGetActingUserID(c)
 
 	createData := data.ProjectCreate{}
@@ -120,7 +119,7 @@ func handleCreate(c *gin.Context) {
 	}
 }
 
-func handleArchive(c *gin.Context) {
+func handleArchiveProject(c *gin.Context) {
 	userID := data.MustGetActingUserID(c)
 
 	archiveData := data.ProjectArchive{}

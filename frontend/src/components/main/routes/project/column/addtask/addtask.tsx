@@ -20,11 +20,11 @@ export const AddTask = ({createTask, statusId}: AddTaskProps) => {
             description: formData.get("description") as string,
             title: formData.get("title") as string,
             statusId: statusId,
-            type: Number(formData.get("type") as string) as TaskType
+            type: formData.get("type") as string as TaskType
         });
     };
 
-    const taskTypeOptions = Object.keys(TaskType).filter(k => !isNaN(+k)).map(k => {return {number: +k, label: TaskType[+k]}});
+    const taskTypeOptions = Object.keys(TaskType).map(k => {return {number: k, label: k}});
 
     const addTaskContent = (<>
             <Form.Group controlId="title">

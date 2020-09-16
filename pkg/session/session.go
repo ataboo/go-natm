@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/ataboo/go-natm/v4/pkg/models"
+	"github.com/ataboo/go-natm/pkg/models"
 	"github.com/gin-gonic/gin"
 )
 

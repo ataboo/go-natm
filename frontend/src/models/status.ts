@@ -3,5 +3,6 @@ export interface StatusRead extends StatusCreate {
 }
 
 export interface StatusCreate {
+    projectId: string;
     name: string;
 }

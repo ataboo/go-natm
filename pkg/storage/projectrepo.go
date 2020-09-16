@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/ataboo/go-natm/v4/pkg/api/data"
-	"github.com/ataboo/go-natm/v4/pkg/common"
-	"github.com/ataboo/go-natm/v4/pkg/models"
+	"github.com/ataboo/go-natm/pkg/api/data"
+	"github.com/ataboo/go-natm/pkg/common"
+	"github.com/ataboo/go-natm/pkg/models"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -38,8 +38,8 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 	return models.ProjectAssociations(
 		qm.Where("user_id = ? AND project_id = ?", userID, projectID),
 		qm.Load("Project"),
-		qm.Load("Project.Tasks"),
-		qm.Load("Project.Tasks.WorkLogs"),
+		qm.Load("Project.TaskStatuses.Tasks"),
+		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
 	).One(r.ctx, r.db)
 }
 

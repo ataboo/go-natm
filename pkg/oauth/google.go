@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ataboo/go-natm/v4/pkg/common"
-	"github.com/ataboo/go-natm/v4/pkg/models"
-	"github.com/ataboo/go-natm/v4/pkg/storage"
+	"github.com/ataboo/go-natm/pkg/common"
+	"github.com/ataboo/go-natm/pkg/models"
+	"github.com/ataboo/go-natm/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"

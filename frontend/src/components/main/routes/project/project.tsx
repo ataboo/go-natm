@@ -8,6 +8,7 @@ import { IProjectService } from '../../../../services/interface/iproject-service
 import { AddStatus } from './addstatus/addstatus';
 import { StatusCreate } from '../../../../models/status';
 import { TaskUpdate } from '../../../../models/task';
+import { idText } from 'typescript';
 
 interface IProjectState {
   projectData: ProjectModel;
@@ -181,7 +182,7 @@ export class Project extends Component<ProjectProps, IProjectState> {
     return (<div className="project">
               <div className="col-container">
                 {this.renderColumns()}
-                <AddStatus createStatus={this.addStatus()}/>
+                <AddStatus projectId={this.props.id} createStatus={this.addStatus()}/>
               </div>
             </div>)
   }

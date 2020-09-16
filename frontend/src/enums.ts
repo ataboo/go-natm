@@ -1,5 +1,5 @@
 export enum TaskType {
-    Task,
-    Problem,
-    Admin
+    Task = "Task",
+    Problem = "Problem",
+    Admin = "Admin"
 }

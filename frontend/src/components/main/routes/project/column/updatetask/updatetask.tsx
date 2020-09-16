@@ -3,6 +3,7 @@ import { ModalForm } from '../../../../modalform';
 import { Form } from 'react-bootstrap';
 import { TaskRead, TaskUpdate } from '../../../../../../models/task';
 import { TaskType } from '../../../../../../enums';
+import moment from 'moment';
 
 type UpdateTaskProps = {
     task: TaskRead
@@ -13,7 +14,7 @@ type UpdateTaskProps = {
 
 export const UpdateTask = ({task, updateTask, show, setShow}: UpdateTaskProps) => {
     const titleInput = useRef(null);
-    const taskTypeOptions = Object.keys(TaskType).filter(k => !isNaN(+k)).map(k => {return {number: +k, label: TaskType[+k]}});
+    const taskTypeOptions = Object.keys(TaskType).filter(k => !isNaN(+k)).map(k => {return {number: k, label: k}});
 
     const handleFormSubmit = (formData: FormData) => {
         updateTask({
@@ -22,7 +23,7 @@ export const UpdateTask = ({task, updateTask, show, setShow}: UpdateTaskProps) =
             id: task.id,
             statusId: task.statusId,
             title: formData.get("title") as string,
-            type: Number(formData.get("type") as string) as TaskType,
+            type: formData.get("type") as string as TaskType,
             estimatedTime: formData.get("estimatedTime") as string
         });
     }
@@ -52,7 +53,7 @@ export const UpdateTask = ({task, updateTask, show, setShow}: UpdateTaskProps) =
 
             <Form.Group controlId="estimatedTime">
                 <Form.Label>Estimated Time</Form.Label>
-                <Form.Control type="text" name="estimatedTime" defaultValue={`${task.timing.estimated?.asHours()}h`}></Form.Control>
+                <Form.Control type="text" name="estimatedTime" defaultValue={`${task.timing.estimated === null ? '-' : moment.utc(task.timing.estimated!).hours()}h`}></Form.Control>
             </Form.Group>
         </>);
 

@@ -6,15 +6,17 @@ import { Plus } from 'react-bootstrap-icons';
 import { ModalForm } from '../../../modalform';
 
 type AddStatusProps = {
+    projectId: string
     createStatus: (status: StatusCreate) => void
 }
 
-export const AddStatus = ({createStatus}: AddStatusProps) => {
+export const AddStatus = ({projectId, createStatus}: AddStatusProps) => {
     const nameInput = useRef<HTMLInputElement>(null);
     const [show, setShow] = useState(false);
 
     const handleSubmit = (formData: FormData) => {
         createStatus({
+            projectId: projectId,
             name: formData.get("name") as string
         });    
     };

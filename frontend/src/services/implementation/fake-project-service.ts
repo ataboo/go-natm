@@ -21,17 +21,17 @@ export class FakeProjectService implements IProjectService {
         }
 
         const timing1: TaskTiming = {
-            current: moment.duration(3.5, "hours"),
-            estimated: moment.duration(2, "days")
+            current: 3600 * 3.5,
+            estimated: 3600 * 2
         }
 
         const timing2: TaskTiming = {
-            current: moment.duration(1, "week"),
+            current: 3600 * 3.5,
             estimated: null
         }
 
         const timing3: TaskTiming = {
-            current: moment.duration(0),
+            current: 0,
             estimated: null
         }
 
@@ -45,11 +45,13 @@ export class FakeProjectService implements IProjectService {
             statuses: [
                 {
                     id: "1",
-                    name: "Back Burner"
+                    name: "Back Burner",
+                    projectId: ""
                 },
                 {
                     id: "2",
-                    name: "Front Burner"
+                    name: "Front Burner",
+                    projectId: ""
                 }
             ],
             tasks: [
@@ -147,7 +149,7 @@ export class FakeProjectService implements IProjectService {
             task.assignee = null;
         }
 
-        task.timing.estimated = moment.duration(updateData.estimatedTime);
+        task.timing.estimated = 0;
 
         task.description = updateData.description;
         task.title = updateData.title;
@@ -175,41 +177,11 @@ export class FakeProjectService implements IProjectService {
     }
 
     async createTask(data: TaskCreate): Promise<boolean> {
-        const maxId = Math.max(...this.cachedProjectData.tasks.map(t => +t.id));
-        const maxOrdinal = Math.max(...this.cachedProjectData.tasks.map(t => t.ordinal));
-        const maxIdentifier = Math.max(...this.cachedProjectData.tasks.map(t => +(t.identifier.split('-')[1])));
-        
-        this.cachedProjectData.tasks.push({
-            assignee: null,
-            description: data.description,
-            identifier: 'PRJ-' + (maxIdentifier + 1).toString(),
-            id: (maxId + 1).toString(),
-            ordinal: maxOrdinal + 1,
-            statusId: data.statusId,
-            timing: {
-                current: moment.duration(0),
-                estimated: moment.duration(0)
-            },
-            title: data.title,
-            type: data.type
-        });
-
-        return true;
+        return await this.realService.createTask(data);
     }
     
     async createTaskStatus(data: StatusCreate): Promise<boolean> {
-        const ids = this.cachedProjectData.statuses.map(s => s.id);
-        let newId = "";
-        for(let i=0; i<1000; i++) {
-            newId = i.toString();
-            if (!ids.includes(newId)) {
-                break;
-            }
-        }
-        
-        this.cachedProjectData.statuses.push({id: newId, name: data.name})
-
-        return true;
+        return await this.realService.createTaskStatus(data);
     }
     async setActiveTaskId(id: string): Promise<boolean> {
         this.activeTaskId = id;
@@ -234,11 +206,11 @@ export class FakeProjectService implements IProjectService {
     }
 
     async getProjectList(): Promise<ProjectGrid[]> {
-        return this.realService.getProjectList()
+        return await this.realService.getProjectList();
     }
 
     async getProject(projectId: string) : Promise<ProjectDetails> {
-        return this.cachedProjectData;
+        return await this.realService.getProject(projectId);
     }
 
     async saveProject(project: ProjectDetails): Promise<any> {

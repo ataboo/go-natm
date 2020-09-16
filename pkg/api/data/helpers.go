@@ -2,6 +2,7 @@ package data
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,4 +14,8 @@ func MustGetActingUserID(c *gin.Context) string {
 	}
 
 	return id.(string)
+}
+
+func TaskIdentifier(abbreviation string, taskNumber int) string {
+	return abbreviation + "-" + strconv.Itoa(taskNumber)
 }

@@ -17,6 +17,6 @@ export const colorForTaskTag = (task: TaskRead): string => {
         case TaskType.Task:
             return "#0000ff88";
         default:
-            throw new Error("Not supported.");
+            throw new Error("Not supported." + task.type);
     }
 }

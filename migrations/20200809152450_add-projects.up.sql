@@ -23,12 +23,12 @@ CREATE TABLE task_statuses (
 
 CREATE TABLE tasks (
    id UUID PRIMARY KEY,
-   project_id UUID NOT NULL REFERENCES projects(id),
    task_status_id UUID NOT NULL REFERENCES task_statuses(id),
-   identifier VARCHAR(64) NOT NULL,
+   number INTEGER NOT NULL,
    assignee_id UUID REFERENCES users(id),
    ordinal INTEGER NOT NULL,
    title VARCHAR(64) NOT NULL,
+   estimate INTEGER,
    description TEXT NOT NULL,
    task_type task_type_enum NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),

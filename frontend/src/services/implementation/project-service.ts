@@ -29,12 +29,16 @@ export default class ProjectService implements IProjectService {
         throw new Error("Method not implemented.");
     }
 
-    createTask(data: TaskCreate): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async createTask(data: TaskCreate): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}tasks/`, JSON.stringify(data));
+
+        return response.status == 200;
     }
 
-    createTaskStatus(data: StatusCreate): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async createTaskStatus(data: StatusCreate): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}statuses/`, JSON.stringify(data));
+        
+        return response.status == 200;
     }
     
     async setActiveTaskId(id: string): Promise<boolean> {
@@ -109,27 +113,13 @@ export default class ProjectService implements IProjectService {
 
             return response.data as ProjectGrid[];
         } catch(e) {
-            console.dir(e);
-            debugger;
-
             throw e;
         }
     }
 
     async getProject(projectId: string): Promise<ProjectDetails> {
-        const response = await fetch(`${this.hostUri}projects/get?projectID=${projectId}`, {
-            method: 'GET',
-            mode: 'same-origin',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            redirect: 'error',
-            referrerPolicy: 'no-referrer'
-        });
-    
-        return response.json();
+        const response = await this.client.get(`${this.hostUri}projects/${projectId}`);
+        return response.data as ProjectDetails;
     };
 
     async createProject(project: ProjectCreate): Promise<boolean> {

@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ataboo/go-natm/v4/pkg/api/project"
-	"github.com/ataboo/go-natm/v4/pkg/common"
-	"github.com/ataboo/go-natm/v4/pkg/database"
-	"github.com/ataboo/go-natm/v4/pkg/oauth"
-	"github.com/ataboo/go-natm/v4/pkg/storage"
+	"github.com/ataboo/go-natm/pkg/api/routes"
+	"github.com/ataboo/go-natm/pkg/common"
+	"github.com/ataboo/go-natm/pkg/database"
+	"github.com/ataboo/go-natm/pkg/oauth"
+	"github.com/ataboo/go-natm/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.uber.org/dig"
@@ -55,6 +55,8 @@ func main() {
 		db *sql.DB,
 		userRepo *storage.UserRepository,
 		projectRepo *storage.ProjectRepository,
+		taskRepo *storage.TaskRepository,
+		statusRepo *storage.StatusRepository,
 	) {
 		defer db.Close()
 		err := database.MigrateDB(db)
@@ -94,7 +96,10 @@ func main() {
 				c.Status(http.StatusOK)
 			})
 
-			project.RegisterRoutes(api, projectRepo)
+			routes.RegisterRoutes(api, projectRepo, statusRepo, taskRepo)
+		}
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		authGroup := router.Group("/auth/")
@@ -113,6 +118,8 @@ func buildContainer() *dig.Container {
 	container.Provide(oauth.NewJWTFactory)
 	container.Provide(storage.NewUserRepository)
 	container.Provide(storage.NewProjectRepository)
+	container.Provide(storage.NewStatusRepository)
+	container.Provide(storage.NewTaskRepository)
 	container.Provide(oauth.LoadJWTConfig)
 	container.Provide(oauth.NewGooglOAuthHandler)
 	container.Provide(oauth.NewJWTRouteService)

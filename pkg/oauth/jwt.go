@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ataboo/go-natm/v4/pkg/common"
+	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
