@@ -30,9 +30,11 @@ func handleCreateStatus(ctx *gin.Context) {
 
 	err = statusRepo.Create(&createData, userID)
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
+		handleErrorWithStatus(err, ctx)
 		return
 	}
+
+	ctx.Status(200)
 }
 
 func handleArchiveStatus(ctx *gin.Context) {

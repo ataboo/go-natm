@@ -14,7 +14,7 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g.GET("/:taskID", handleGetTask)
 	g.POST("/", handleCreateTask)
 	g.POST("/archive/", handleArchiveTask)
-	// g.PUT("/:projectID", handleUpdate)
+	g.POST("/update", handleUpdateTask)
 	// g.DELETE("/:projectID", handleDelete)
 }
 
@@ -37,7 +37,7 @@ func handleGetTask(ctx *gin.Context) {
 		ID:          task.ID,
 		Identifier:  data.TaskIdentifier(task.R.TaskStatus.R.Project.Abbreviation, task.Number),
 		StatusID:    task.TaskStatusID,
-		Timing: data.TimingGrid{
+		Timing: &data.TimingGrid{
 			Current:  "todo",
 			Estimate: "todo",
 		},
@@ -61,8 +61,26 @@ func handleCreateTask(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
+	ctx.Status(200)
 }
 
 func handleArchiveTask(ctx *gin.Context) {
 	ctx.AbortWithError(http.StatusInternalServerError, errors.New("Not implemented yet"))
+}
+
+func handleUpdateTask(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+	updateData := data.TaskUpdate{}
+	err := ctx.BindJSON(&updateData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+	}
+
+	err = taskRepo.Update(&updateData, userID)
+	if err != nil {
+		handleErrorWithStatus(err, ctx)
+	}
+
+	ctx.Status(200)
 }

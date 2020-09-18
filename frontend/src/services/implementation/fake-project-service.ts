@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate, ProjectGrid } from "../../models/project";
+import { ProjectDetails, ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import ProjectService from "./project-service";
 import { User } from "../../models/user";
@@ -22,17 +22,17 @@ export class FakeProjectService implements IProjectService {
 
         const timing1: TaskTiming = {
             current: 3600 * 3.5,
-            estimated: 3600 * 2
+            estimate: 3600 * 2
         }
 
         const timing2: TaskTiming = {
             current: 3600 * 3.5,
-            estimated: null
+            estimate: undefined
         }
 
         const timing3: TaskTiming = {
             current: 0,
-            estimated: null
+            estimate: undefined
         }
 
         this.activeTaskId = "";
@@ -134,28 +134,7 @@ export class FakeProjectService implements IProjectService {
     }
 
     async updateTask(updateData: TaskUpdate): Promise<boolean> {
-        const task = this.cachedProjectData.tasks.find(t => t.id === updateData.id);
-        if (!task) {
-            return false;
-        }
-
-        if(updateData.assigneeEmail) {
-            task.assignee = {
-                email: updateData.assigneeEmail,
-                name: "Assigned User",
-                id: "23"
-            };
-        } else {
-            task.assignee = null;
-        }
-
-        task.timing.estimated = 0;
-
-        task.description = updateData.description;
-        task.title = updateData.title;
-        task.type = updateData.type;
-
-        return true;
+        return await this.realService.updateTask(updateData);
     }
 
     async archiveTask(taskId: string): Promise<boolean> {
@@ -197,12 +176,12 @@ export class FakeProjectService implements IProjectService {
         return this.realService.emptyProject();
     }
 
-    swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
-        return this.realService.swapTasks(project, draggedTaskId, droppedTaskStatusId, droppedTaskOrdinal);
+    async swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): Promise<boolean> {
+        return await this.realService.swapTasks(project, draggedTaskId, droppedTaskStatusId, droppedTaskOrdinal);
     }
 
-    moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean {
-        return this.realService.moveCardToStatus(project, draggedTaskId, statusId);
+    async moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): Promise<boolean> {
+        return await this.realService.moveCardToStatus(project, draggedTaskId, statusId);
     }
 
     async getProjectList(): Promise<ProjectGrid[]> {
@@ -213,9 +192,7 @@ export class FakeProjectService implements IProjectService {
         return await this.realService.getProject(projectId);
     }
 
-    async saveProject(project: ProjectDetails): Promise<any> {
-        this.cachedProjectData = project;
-
-        console.log("saved project!");
+    async saveTaskOrder(taskOrder: ProjectTaskOrder): Promise<boolean> {
+        return await this.realService.saveTaskOrder(taskOrder);      
     }
 }

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
-	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +14,8 @@ func registerProjectRoutes(e *gin.RouterGroup) {
 	g.GET("/", handleGetProjects)
 	g.GET("/:projectID", handleGetProject)
 	g.POST("/", handleCreateProject)
-	g.POST("/archive/", handleArchiveProject)
+	g.POST("/archive", handleArchiveProject)
+	g.POST("/setTaskOrder", handleSetTaskOrder)
 	// g.PUT("/:projectID", handleUpdate)
 	// g.DELETE("/:projectID", handleDelete)
 }
@@ -67,17 +67,33 @@ func handleGetProject(c *gin.Context) {
 	for i, s := range taskStatuses {
 		statusTasks := make([]data.TaskGrid, len(s.R.Tasks))
 		for j, t := range s.R.Tasks {
+			estimateStr := ""
+			if t.Estimate.Valid {
+				estimateStr = strconv.Itoa(t.Estimate.Int)
+			}
+
+			var assignee *data.UserRead = nil
+			if t.R.Assignee != nil {
+				assignee = &data.UserRead{
+					Email: t.R.Assignee.Email,
+					ID:    t.R.Assignee.ID,
+					Name:  t.R.Assignee.Name,
+				}
+			}
+
 			statusTasks[j] = data.TaskGrid{
 				Description: t.Description,
 				ID:          t.ID,
 				Identifier:  association.R.Project.Abbreviation + "-" + strconv.Itoa(t.Number),
-				Timing: data.TimingGrid{
-					Estimate: "",
+				Timing: &data.TimingGrid{
+					Estimate: estimateStr,
 					Current:  "",
 				},
 				StatusID: t.TaskStatusID,
 				Type:     t.TaskType,
 				Title:    t.Title,
+				Ordinal:  t.Ordinal,
+				Assignee: assignee,
 			}
 		}
 
@@ -117,6 +133,8 @@ func handleCreateProject(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
+	c.Status(200)
 }
 
 func handleArchiveProject(c *gin.Context) {
@@ -131,14 +149,25 @@ func handleArchiveProject(c *gin.Context) {
 
 	err = projectRepo.Archive(archiveData.ProjectID, userID)
 	if err != nil {
-		statusErr, ok := err.(*common.ErrorWithStatus)
-		if !ok {
-			c.AbortWithError(http.StatusInternalServerError, err)
-		} else {
-			c.AbortWithStatus(statusErr.Code)
-		}
-
+		handleErrorWithStatus(err, c)
 		return
+	}
+
+	c.Status(200)
+}
+
+func handleSetTaskOrder(c *gin.Context) {
+	userID := data.MustGetActingUserID(c)
+	taskOrder := data.ProjectTaskOrder{}
+	err := c.BindJSON(&taskOrder)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = projectRepo.SetTaskOrder(taskOrder, userID)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 
 	c.Status(200)

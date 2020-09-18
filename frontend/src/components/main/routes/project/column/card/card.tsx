@@ -55,11 +55,11 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
             elementRef.current.removeEventListener('dragend', onDragEnd, false);
         }
         cardActions.setDraggedCardId("");
-        cardActions.saveProject();
+        cardActions.saveTaskOrder();
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">{moment.utc(currentTime / 1000).format("H:mm")} | {task.timing.estimated ? moment.utc(task.timing.estimated!).hours() + "h" : '-'}</div>)
+        return (<div className="timing-indicator">{moment.utc(currentTime / 1000).format("H:mm")} | {task.timing.estimate ? (task.timing.estimate / 60.0).toFixed(2) + "h" : '-'}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();

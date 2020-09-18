@@ -40,6 +40,7 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 		qm.Load("Project"),
 		qm.Load("Project.TaskStatuses.Tasks"),
 		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
+		qm.Load("Project.TaskStatuses.Tasks.Assignee"),
 	).One(r.ctx, r.db)
 }
 
@@ -106,6 +107,53 @@ func (r *ProjectRepository) Archive(projectID string, userID string) error {
 	if err != nil {
 		return &common.ErrorWithStatus{
 			Code: http.StatusInternalServerError,
+		}
+	}
+
+	return nil
+}
+
+func (r *ProjectRepository) SetTaskOrder(taskOrder data.ProjectTaskOrder, userID string) error {
+	association, err := r.Find(taskOrder.ID, userID)
+	if err != nil || association == nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusNotFound,
+		}
+	}
+
+	switch association.Association {
+	case models.AssociationsEnumOwner:
+	case models.AssociationsEnumWriter:
+		break
+	default:
+		return &common.ErrorWithStatus{
+			Code: http.StatusForbidden,
+		}
+	}
+
+	taskMap := make(map[string]data.TaskOrder)
+	for _, t := range taskOrder.Tasks {
+		taskMap[t.ID] = t
+	}
+
+	tasks, err := models.Tasks(qm.LeftOuterJoin("task_statuses s ON s.id = tasks.task_status_id"), qm.Where("s.project_id = ?", taskOrder.ID)).All(r.ctx, r.db)
+	if err != nil {
+		return err
+	}
+
+	for _, t := range tasks {
+		newOrder, ok := taskMap[t.ID]
+		if !ok {
+			return err
+		}
+
+		if t.TaskStatusID != newOrder.StatusID || t.Ordinal != newOrder.Ordinal {
+			t.TaskStatusID = newOrder.StatusID
+			t.Ordinal = newOrder.Ordinal
+			_, err := t.Update(r.ctx, r.db, boil.Infer())
+			if err != nil {
+				return err
+			}
 		}
 	}
 

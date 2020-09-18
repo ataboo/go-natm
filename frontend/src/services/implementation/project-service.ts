@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate as ProjectCreate, ProjectGrid } from "../../models/project";
+import { ProjectDetails, ProjectCreate as ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
@@ -17,8 +17,8 @@ export default class ProjectService implements IProjectService {
         this.hostUri = "http://localhost:8080/api/v1/";
     }
 
-    updateTask(updateData: TaskUpdate): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async updateTask(updateData: TaskUpdate): Promise<boolean> {
+        return await this.client.post(`${this.hostUri}tasks/update`, JSON.stringify(updateData));
     }
     
     archiveTask(taskId: string): Promise<boolean> {
@@ -49,7 +49,7 @@ export default class ProjectService implements IProjectService {
         throw new Error("Method not implemented.");
     }
 
-    swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): boolean {
+    async swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): Promise<boolean> {
         let draggedTask = project.tasks.find(t => t.id === draggedTaskId);
         if (draggedTask === undefined) {
             throw new Error("Failed to find task: " + draggedTaskId);
@@ -85,7 +85,7 @@ export default class ProjectService implements IProjectService {
         return true;
     };
 
-    moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): boolean {
+    async moveCardToStatus(project: ProjectDetails, draggedTaskId: string, statusId: string): Promise<boolean> {
         let draggedTask = project.tasks.find(c => c.id === draggedTaskId);
         if (draggedTask === undefined) {
             throw new Error("Failed to find task: " + draggedTaskId);
@@ -103,7 +103,7 @@ export default class ProjectService implements IProjectService {
 
         draggedTask.statusId = statusId;
         draggedTask.ordinal = 0;
-        
+
         return true;
     }
     
@@ -135,23 +135,6 @@ export default class ProjectService implements IProjectService {
 
         return response.status == 200;
     }
-    
-    async saveProject(project: ProjectDetails): Promise<any> {
-        const response = await fetch(`${this.hostUri}projects/update?id=${project.id}`, {
-            method: 'POST',
-            mode: 'same-origin',
-            cache: 'no-cache',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            redirect: 'error',
-            referrerPolicy: 'no-referrer',
-            body: JSON.stringify(project)
-        });
-    
-        return response.json();
-    };
 
     emptyProject(): ProjectDetails {
         return {
@@ -162,5 +145,11 @@ export default class ProjectService implements IProjectService {
             abbreviation: "",
             description: "",
         };
+    }
+
+    async saveTaskOrder(taskOrder: ProjectTaskOrder): Promise<boolean> {
+        var response = await this.client.post(`${this.hostUri}projects/setTaskOrder`, JSON.stringify(taskOrder));
+
+        return response.status == 200;
     }
 }

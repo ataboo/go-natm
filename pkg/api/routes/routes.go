@@ -3,8 +3,10 @@ package routes
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 
+	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/ataboo/go-natm/pkg/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -23,4 +25,13 @@ func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository, sr *stora
 	registerProjectRoutes(e)
 	registerStatusRoutes(e)
 	registerTaskRoutes(e)
+}
+
+func handleErrorWithStatus(err error, c *gin.Context) {
+	statusErr, ok := err.(*common.ErrorWithStatus)
+	if !ok {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	} else {
+		c.AbortWithStatus(statusErr.Code)
+	}
 }

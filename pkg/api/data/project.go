@@ -36,3 +36,14 @@ type ProjectUpdate struct {
 type ProjectArchive struct {
 	ProjectID string `json:"projectID" binding:"required"`
 }
+
+type ProjectTaskOrder struct {
+	ID    string      `json:"id" binding:"required"`
+	Tasks []TaskOrder `json:"tasks" binding:"required"`
+}
+
+type TaskOrder struct {
+	ID       string `json:"id" binding:"required"`
+	StatusID string `json:"statusId" binding:"required"`
+	Ordinal  int    `json:"ordinal" binding:"required"`
+}

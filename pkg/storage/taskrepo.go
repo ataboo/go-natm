@@ -4,6 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
 	"github.com/ataboo/go-natm/pkg/models"
@@ -15,14 +19,22 @@ import (
 )
 
 type TaskRepository struct {
-	db  *sql.DB
-	ctx context.Context
+	db       *sql.DB
+	ctx      context.Context
+	dayExpr  *regexp.Regexp
+	hourExpr *regexp.Regexp
 }
 
 func NewTaskRepository(db *sql.DB) *TaskRepository {
+
+	dayExpr, _ := regexp.Compile(`(\d*\.?\d*)[dD]`)
+	hourExpr, _ := regexp.Compile(`(\d*\.?\d*)[hH]`)
+
 	return &TaskRepository{
-		db:  db,
-		ctx: context.Background(),
+		db:       db,
+		ctx:      context.Background(),
+		dayExpr:  dayExpr,
+		hourExpr: hourExpr,
 	}
 }
 
@@ -88,18 +100,50 @@ func (r *TaskRepository) Create(taskData *data.TaskCreate, ownerID string) error
 	return taskModel.Insert(r.ctx, r.db, boil.Infer())
 }
 
-func (r *TaskRepository) Update(projectData *data.ProjectUpdate) error {
-	proj := models.Project{
-		ID:           projectData.ID,
-		Active:       projectData.Active,
-		Abbreviation: projectData.Abbreviation,
-		Description:  projectData.Description,
-		Name:         projectData.Name,
+func (r *TaskRepository) Update(taskData *data.TaskUpdate, userID string) error {
+	var assigneeID = ""
+	user, err := models.Users(qm.Where("email = ?", taskData.AssigneeEmail)).One(r.ctx, r.db)
+	if err == nil && user != nil {
+		assigneeID = user.ID
 	}
 
-	_, err := proj.Update(r.ctx, r.db, boil.Infer())
+	estimateMins, ok := r.parseDuration(taskData.Estimate)
 
-	return err
+	task, err := models.FindTask(r.ctx, r.db, taskData.ID)
+	task.AssigneeID = null.NewString(assigneeID, assigneeID != "")
+	task.Description = taskData.Description
+	task.Estimate = null.NewInt(estimateMins, ok)
+	task.ID = taskData.ID
+	task.Title = taskData.Title
+	task.TaskType = taskData.Type
+
+	_, err = task.Update(r.ctx, r.db, boil.Infer())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *TaskRepository) parseDuration(input string) (duration int, ok bool) {
+	if match := r.dayExpr.FindStringSubmatch(input); len(match) == 2 {
+		if flDays, err := strconv.ParseFloat(match[1], 32); err == nil {
+			return int(math.Round(flDays * 8 * 60)), true
+		}
+	}
+
+	if match := r.hourExpr.FindStringSubmatch(input); len(match) == 2 {
+		if flHours, err := strconv.ParseFloat(match[1], 32); err == nil {
+			return int(math.Round(flHours * 60)), true
+		}
+	}
+
+	input = strings.Replace(input, "m", "", 1)
+	if flMins, err := strconv.ParseFloat(input, 32); err == nil {
+		return int(math.Round(flMins)), true
+	}
+
+	return 0, false
 }
 
 // func (r *TaskRepository) Archive(projectID string, userID string) error {

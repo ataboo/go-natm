@@ -113,7 +113,7 @@ export class Project extends Component<ProjectProps, IProjectState> {
         activeTaskId: this.state.activeTaskId
       }),
       swapCards: this.moveCards(),
-      saveProject: () => this.context.projectService.saveProject(this.state.projectData),
+      saveTaskOrder: () => this.context.projectService.saveTaskOrder(this.state.projectData),
       createStatus: async (createData) => {
         throw new Error("Not implemented");
       },

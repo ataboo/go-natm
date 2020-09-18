@@ -14,7 +14,7 @@ export interface ICardActions {
 
     setActiveTaskId(id: string): void
 
-    saveProject(): void
+    saveTaskOrder(): void
 
     createStatus(createData: StatusCreate): Promise<StatusRead>
 

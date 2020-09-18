@@ -21,6 +21,17 @@ export interface ProjectGrid {
     lastUpdated: number
 }
 
+export interface ProjectTaskOrder {
+    id: string,
+    tasks: TaskOrder[],
+}
+
+export interface TaskOrder {
+    id: string,
+    statusId: string,
+    ordinal: number
+}
+
 export const cloneProject = (oldProject: ProjectDetails) => {
     return {
         id: oldProject.id,
