@@ -28,6 +28,10 @@ func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository, sr *stora
 }
 
 func handleErrorWithStatus(err error, c *gin.Context) {
+	if err == nil {
+		return
+	}
+
 	statusErr, ok := err.(*common.ErrorWithStatus)
 	if !ok {
 		c.AbortWithError(http.StatusInternalServerError, err)

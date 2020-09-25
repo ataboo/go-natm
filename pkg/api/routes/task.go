@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
@@ -12,8 +11,8 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g := e.Group("/tasks")
 
 	g.GET("/:taskID", handleGetTask)
-	g.POST("/", handleCreateTask)
-	g.POST("/archive/", handleArchiveTask)
+	g.POST("/create", handleCreateTask)
+	g.POST("/archive", handleArchiveTask)
 	g.POST("/update", handleUpdateTask)
 	// g.DELETE("/:projectID", handleDelete)
 }
@@ -66,7 +65,20 @@ func handleCreateTask(ctx *gin.Context) {
 }
 
 func handleArchiveTask(ctx *gin.Context) {
-	ctx.AbortWithError(http.StatusInternalServerError, errors.New("Not implemented yet"))
+	userID := data.MustGetActingUserID(ctx)
+	archiveData := struct {
+		TaskID string `json:"task_id"`
+	}{}
+
+	err := ctx.BindJSON(&archiveData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	handleErrorWithStatus(taskRepo.Archive(archiveData.TaskID, userID), ctx)
+
+	ctx.Status(200)
 }
 
 func handleUpdateTask(ctx *gin.Context) {

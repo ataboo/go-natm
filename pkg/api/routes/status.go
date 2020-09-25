@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
@@ -38,5 +37,17 @@ func handleCreateStatus(ctx *gin.Context) {
 }
 
 func handleArchiveStatus(ctx *gin.Context) {
-	ctx.AbortWithError(http.StatusInternalServerError, errors.New("Not implemented yet"))
+	userID := data.MustGetActingUserID(ctx)
+
+	archiveData := struct {
+		StatusID `json:"status_id"`
+	}{}
+
+	err := ctx.BindJSON(&archiveData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = statusRepo.Archive(archiveData.StatusID, userID)
 }

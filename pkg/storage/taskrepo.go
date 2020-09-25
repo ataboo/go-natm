@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
+	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/ataboo/go-natm/pkg/models"
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
@@ -47,15 +49,32 @@ func (r *TaskRepository) List(projectID string) (models.TaskSlice, error) {
 
 func (r *TaskRepository) Find(taskID string, userID string) (*models.Task, error) {
 	return models.Tasks(
-		qm.LeftOuterJoin("project_associations pa ON pa.project_id = tasks.project_id"),
-		qm.Where("id = ? AND pa.user_id = ?", taskID, userID),
+		qm.LeftOuterJoin("task_statuses s ON s.id = tasks.task_status_id"),
+		qm.LeftOuterJoin("project_associations pa ON pa.project_id = s.project_id"),
+		qm.Where("tasks.id = ? AND pa.user_id = ?", taskID, userID),
 	).One(r.ctx, r.db)
+}
+
+func (r *TaskRepository) Archive(taskID string, userID string) error {
+	taskModel, err := r.Find(taskID, userID)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
+
+	taskModel.Active = false
+
+	_, err = taskModel.Update(r.ctx, r.db, boil.Infer())
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	return nil
 }
 
 func (r *TaskRepository) Create(taskData *data.TaskCreate, ownerID string) error {
 	statusModel, err := models.FindTaskStatus(r.ctx, r.db, taskData.StatusID)
 	if err != nil {
-		return err
+		return &common.ErrorWithStatus{Code: http.StatusNotFound}
 	}
 
 	maxValRow := struct {

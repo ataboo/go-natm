@@ -138,9 +138,7 @@ export class FakeProjectService implements IProjectService {
     }
 
     async archiveTask(taskId: string): Promise<boolean> {
-        this.cachedProjectData.tasks = this.cachedProjectData.tasks.filter(t => t.id !== taskId);
-
-        return true;
+        return await this.realService.archiveTask(taskId);
     }
 
     async archiveStatus(statusId: string): Promise<boolean> {

@@ -67,6 +67,10 @@ func handleGetProject(c *gin.Context) {
 	for i, s := range taskStatuses {
 		statusTasks := make([]data.TaskGrid, len(s.R.Tasks))
 		for j, t := range s.R.Tasks {
+			if !t.Active {
+				continue
+			}
+
 			estimateStr := ""
 			if t.Estimate.Valid {
 				estimateStr = strconv.Itoa(t.Estimate.Int)

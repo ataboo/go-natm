@@ -31,6 +31,7 @@ CREATE TABLE tasks (
    estimate INTEGER,
    description TEXT NOT NULL,
    task_type task_type_enum NOT NULL,
+   active BOOLEAN NOT NULL DEFAULT TRUE,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

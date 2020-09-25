@@ -21,8 +21,10 @@ export default class ProjectService implements IProjectService {
         return await this.client.post(`${this.hostUri}tasks/update`, JSON.stringify(updateData));
     }
     
-    archiveTask(taskId: string): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async archiveTask(taskID: string): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}tasks/archive`, JSON.stringify({task_id: taskID}));
+
+        return response.status == 200;
     }
 
     archiveStatus(statusId: string): Promise<boolean> {
@@ -30,7 +32,7 @@ export default class ProjectService implements IProjectService {
     }
 
     async createTask(data: TaskCreate): Promise<boolean> {
-        const response = await this.client.post(`${this.hostUri}tasks/`, JSON.stringify(data));
+        const response = await this.client.post(`${this.hostUri}tasks/create`, JSON.stringify(data));
 
         return response.status == 200;
     }

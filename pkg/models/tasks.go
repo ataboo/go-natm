@@ -33,6 +33,7 @@ type Task struct {
 	Estimate     null.Int    `boil:"estimate" json:"estimate,omitempty" toml:"estimate" yaml:"estimate,omitempty"`
 	Description  string      `boil:"description" json:"description" toml:"description" yaml:"description"`
 	TaskType     string      `boil:"task_type" json:"task_type" toml:"task_type" yaml:"task_type"`
+	Active       bool        `boil:"active" json:"active" toml:"active" yaml:"active"`
 	CreatedAt    time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt    time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -50,6 +51,7 @@ var TaskColumns = struct {
 	Estimate     string
 	Description  string
 	TaskType     string
+	Active       string
 	CreatedAt    string
 	UpdatedAt    string
 }{
@@ -62,6 +64,7 @@ var TaskColumns = struct {
 	Estimate:     "estimate",
 	Description:  "description",
 	TaskType:     "task_type",
+	Active:       "active",
 	CreatedAt:    "created_at",
 	UpdatedAt:    "updated_at",
 }
@@ -124,6 +127,7 @@ var TaskWhere = struct {
 	Estimate     whereHelpernull_Int
 	Description  whereHelperstring
 	TaskType     whereHelperstring
+	Active       whereHelperbool
 	CreatedAt    whereHelpertime_Time
 	UpdatedAt    whereHelpertime_Time
 }{
@@ -136,6 +140,7 @@ var TaskWhere = struct {
 	Estimate:     whereHelpernull_Int{field: "\"tasks\".\"estimate\""},
 	Description:  whereHelperstring{field: "\"tasks\".\"description\""},
 	TaskType:     whereHelperstring{field: "\"tasks\".\"task_type\""},
+	Active:       whereHelperbool{field: "\"tasks\".\"active\""},
 	CreatedAt:    whereHelpertime_Time{field: "\"tasks\".\"created_at\""},
 	UpdatedAt:    whereHelpertime_Time{field: "\"tasks\".\"updated_at\""},
 }
@@ -167,9 +172,9 @@ func (*taskR) NewStruct() *taskR {
 type taskL struct{}
 
 var (
-	taskAllColumns            = []string{"id", "task_status_id", "number", "assignee_id", "ordinal", "title", "estimate", "description", "task_type", "created_at", "updated_at"}
+	taskAllColumns            = []string{"id", "task_status_id", "number", "assignee_id", "ordinal", "title", "estimate", "description", "task_type", "active", "created_at", "updated_at"}
 	taskColumnsWithoutDefault = []string{"id", "task_status_id", "number", "assignee_id", "ordinal", "title", "estimate", "description", "task_type"}
-	taskColumnsWithDefault    = []string{"created_at", "updated_at"}
+	taskColumnsWithDefault    = []string{"active", "created_at", "updated_at"}
 	taskPrimaryKeyColumns     = []string{"id"}
 )
 
