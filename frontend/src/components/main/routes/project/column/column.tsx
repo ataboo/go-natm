@@ -8,6 +8,7 @@ import { ICardActions } from '../icardactions';
 import { Dropdown } from 'react-bootstrap';
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
 import { AddTask } from './addtask';
+import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 
 type ColumnProps = {
     tasks: TaskRead[],
@@ -35,12 +36,31 @@ export function Column({tasks, status, cardActions}: ColumnProps) {
         return cards;
     }
 
+    const renderDropdownMenu = () : JSX.Element => {
+        const moveLeftButton = status.ordinal > 0 ? (<Dropdown.Item onClick={moveStatusLeft}>Move Left</Dropdown.Item>) : "";
+        const moveRightButton = status.ordinal !== cardActions.getMaxStatusOrdinal() ? (<Dropdown.Item onClick={moveStatusRight}>Move Right</Dropdown.Item>) : "";
+
+        return (<Dropdown.Menu>
+                    <Dropdown.Item onClick={archiveStatus}>Archive</Dropdown.Item>
+                    {moveLeftButton}
+                    {moveRightButton}
+            </Dropdown.Menu>);
+    }
+
     const archiveStatus = (event: React.MouseEvent) => {
         if (!window.confirm("Are you sure you want to archive this status?")) {
             return
         }
 
         cardActions.archiveStatus(status.id);
+    }
+
+    const moveStatusLeft = (event: React.MouseEvent) => {
+        cardActions.stepStatusOrdinal(status.id, -1);
+    }
+
+    const moveStatusRight = (event: React.MouseEvent) => {
+        cardActions.stepStatusOrdinal(status.id, 1);
     }
 
     return (
@@ -51,10 +71,7 @@ export function Column({tasks, status, cardActions}: ColumnProps) {
                 <Dropdown.Toggle variant="outline-default">
                     <ThreeDotsVertical/>
                 </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                    <Dropdown.Item onClick={archiveStatus}>Archive</Dropdown.Item>
-                </Dropdown.Menu>
+                {renderDropdownMenu()}
             </Dropdown>
         </div>
         {renderCards()}

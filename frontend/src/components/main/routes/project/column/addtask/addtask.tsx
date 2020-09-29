@@ -47,8 +47,8 @@ export const AddTask = ({createTask, statusId}: AddTaskProps) => {
 
     return (
         <>
-            <button className="btn m-2 p-1 btn-primary" onClick={() => {setShow(true)}}>
-                <Plus size={24}/>
+            <button className="btn m-2 p-1 btn-primary add-task-button" onClick={() => {setShow(true)}}>
+                <div className="d-flex"><Plus size={24}/> <span className="mr-2">Task</span></div>
             </button>
             <ModalForm 
                 title="Create New Task" 

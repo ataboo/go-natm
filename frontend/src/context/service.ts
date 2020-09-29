@@ -1,6 +1,6 @@
 import { createContext } from 'react';
+import ProjectService from '../services/implementation/project-service';
 import { IProjectService } from '../services/interface/iproject-service';
-import { FakeProjectService } from '../services/implementation/fake-project-service';
 
 type ServiceContextProps = {
     projectService: IProjectService
@@ -8,9 +8,9 @@ type ServiceContextProps = {
 
 export const ServiceContext = createContext<ServiceContextProps>(defaultServiceContext());
 
-export function defaultServiceContext() {
+export function defaultServiceContext() : ServiceContextProps {
     return {
-        projectService: new FakeProjectService()
+        projectService: new ProjectService()
     };
 }
 

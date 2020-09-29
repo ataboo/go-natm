@@ -59,7 +59,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">{moment.utc(currentTime / 1000).format("H:mm")} | {task.timing.estimate ? (task.timing.estimate / 60.0).toFixed(2) + "h" : '-'}</div>)
+        return (<div className="timing-indicator">{moment.utc(currentTime * 1000).format("H:mm")} | {task.timing.estimate ? (task.timing.estimate / 3600.0).toFixed(2) + "h" : '-'}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();
@@ -87,7 +87,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
                 />
                 <div className={"card-body-group"}>
                     <div className="assignee-link">
-                        <a href="#">{task.assignee == null ? "" : (userNameAsInitials(task.assignee!))}</a>
+                        <a href={"mailto:"+task.assignee?.email}>{task.assignee == null ? "" : (userNameAsInitials(task.assignee!))}</a>
                     </div>
                     {renderTiming()}
                 </div>

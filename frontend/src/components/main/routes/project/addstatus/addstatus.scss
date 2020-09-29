@@ -1,3 +1,11 @@
 .col-add-button {
     margin: 0.5rem;
 }
+
+.add-status-button {
+    opacity: 0.3;
+    
+    &:hover {
+        opacity: 1;
+    }
+}

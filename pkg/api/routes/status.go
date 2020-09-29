@@ -11,10 +11,9 @@ func registerStatusRoutes(e *gin.RouterGroup) {
 	g := e.Group("/statuses")
 
 	g.POST("/", handleCreateStatus)
-	g.POST("/archive/", handleArchiveStatus)
+	g.POST("/archive", handleArchiveStatus)
+	g.POST("/stepOrdinal", handleStepOrdinal)
 	// g.PUT("/update", handleUpdate)
-	// g.PUT("/:projectID", handleUpdate)
-	// g.DELETE("/:projectID", handleDelete)
 }
 
 func handleCreateStatus(ctx *gin.Context) {
@@ -40,7 +39,7 @@ func handleArchiveStatus(ctx *gin.Context) {
 	userID := data.MustGetActingUserID(ctx)
 
 	archiveData := struct {
-		StatusID `json:"status_id"`
+		StatusID string `json:"status_id"`
 	}{}
 
 	err := ctx.BindJSON(&archiveData)
@@ -50,4 +49,29 @@ func handleArchiveStatus(ctx *gin.Context) {
 	}
 
 	err = statusRepo.Archive(archiveData.StatusID, userID)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+}
+
+func handleStepOrdinal(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+
+	archiveData := struct {
+		StatusID string `json:"status_id"`
+		Step     int    `json:"step"`
+	}{}
+
+	err := ctx.BindJSON(&archiveData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = statusRepo.StepOrdinal(archiveData.StatusID, userID, archiveData.Step)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 }

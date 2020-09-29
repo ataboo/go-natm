@@ -26,10 +26,6 @@ export const UpdateTask = ({task, updateTask, show, setShow}: UpdateTaskProps) =
         });
     }
 
-    if (show) {
-        console.dir(task.timing.estimate);
-    }
-
     const formContent = (<> 
             <Form.Group controlId="title">
                 <Form.Label>Title</Form.Label>
@@ -56,7 +52,7 @@ export const UpdateTask = ({task, updateTask, show, setShow}: UpdateTaskProps) =
             <Form.Group controlId="estimatedTime">
                 <Form.Label>Estimated Time</Form.Label>
                 {/* <Form.Control type="text" name="estimatedTime" defaultValue={`${task.timing.estimated === null ? '-' : moment.utc(task.timing.estimated!).hours()}h`}></Form.Control> */}
-                <Form.Control type="text" name="estimatedTime" defaultValue={task.timing.estimate}></Form.Control>
+                <Form.Control type="text" name="estimatedTime" defaultValue={task.timing.estimate == undefined ? "" : (task.timing.estimate! / 60.0).toFixed(0) + 'm'}></Form.Control>
             </Form.Group>
         </>);
 

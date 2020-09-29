@@ -5,6 +5,7 @@ export interface ProjectDetails extends ProjectCreate {
     id: string;
     tasks: TaskRead[];
     statuses: StatusRead[];
+    workingTaskID?: string;
 }
 
 export interface ProjectCreate {

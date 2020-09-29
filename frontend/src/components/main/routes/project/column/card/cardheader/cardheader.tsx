@@ -18,14 +18,14 @@ export const CardHeader = ({cardActions, task} : CardHeaderProps) => {
     const activateButton = () => {
         if (cardActive) {
             return (
-                <button onClick={() => cardActions.setActiveTaskId("")} className="btn p-1">
+                <button onClick={() => cardActions.stopLoggingWork()} className="btn p-1">
                     <StopFill />
                 </button>
             );
         }
 
         return (
-            <button onClick={() => cardActions.setActiveTaskId(task.id)} className="btn p-1" >
+            <button onClick={() => cardActions.startLoggingWork(task.id)} className="btn p-1" >
                 <PlayFill />
             </button>
         );

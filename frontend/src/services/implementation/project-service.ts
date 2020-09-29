@@ -6,19 +6,23 @@ import axios, { AxiosInstance } from "axios";
 
 export default class ProjectService implements IProjectService {
     client: AxiosInstance
-
     hostUri: string;
+    activeTaskId: string;
 
     constructor() {
         this.client = axios.create({
             withCredentials: true,
         });
 
+        this.activeTaskId = "";
+
         this.hostUri = "http://localhost:8080/api/v1/";
     }
 
     async updateTask(updateData: TaskUpdate): Promise<boolean> {
-        return await this.client.post(`${this.hostUri}tasks/update`, JSON.stringify(updateData));
+        const response = await this.client.post(`${this.hostUri}tasks/update`, JSON.stringify(updateData));
+        
+        return response.status == 200;
     }
     
     async archiveTask(taskID: string): Promise<boolean> {
@@ -27,8 +31,10 @@ export default class ProjectService implements IProjectService {
         return response.status == 200;
     }
 
-    archiveStatus(statusId: string): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async archiveStatus(statusID: string): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}statuses/archive`, JSON.stringify({status_id: statusID}));
+
+        return response.status == 200;
     }
 
     async createTask(data: TaskCreate): Promise<boolean> {
@@ -43,12 +49,25 @@ export default class ProjectService implements IProjectService {
         return response.status == 200;
     }
     
-    async setActiveTaskId(id: string): Promise<boolean> {
-        throw new Error("Method not implemented.");
+    async startLoggingWork(id: string): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}tasks/startLoggingWork`, JSON.stringify({ task_id: id }));
+        if (response.status == 200) {
+            this.activeTaskId = id;
+
+            return true;
+        }
+ 
+        return false;
     }
-    
-    async getActiveTaskId(): Promise<string> {
-        throw new Error("Method not implemented.");
+
+    async stopLoggingWork(): Promise<boolean> {
+        const response = await this.client.post(`${this.hostUri}tasks/stopLoggingWork`);
+        if (response.status == 200) {
+            this.activeTaskId = "";
+            return true;
+        }
+
+        return false;
     }
 
     async swapTasks(project: ProjectDetails, draggedTaskId: string, droppedTaskStatusId: string, droppedTaskOrdinal: number): Promise<boolean> {
@@ -151,6 +170,12 @@ export default class ProjectService implements IProjectService {
 
     async saveTaskOrder(taskOrder: ProjectTaskOrder): Promise<boolean> {
         var response = await this.client.post(`${this.hostUri}projects/setTaskOrder`, JSON.stringify(taskOrder));
+
+        return response.status == 200;
+    }
+
+    async stepStatusOrdinal(statusID: string, step: number): Promise<boolean> {
+        var response = await this.client.post(`${this.hostUri}statuses/stepOrdinal`, JSON.stringify({status_id: statusID, step: step}));
 
         return response.status == 200;
     }

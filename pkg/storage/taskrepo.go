@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
 	"github.com/ataboo/go-natm/pkg/common"
@@ -131,7 +132,7 @@ func (r *TaskRepository) Update(taskData *data.TaskUpdate, userID string) error 
 	task, err := models.FindTask(r.ctx, r.db, taskData.ID)
 	task.AssigneeID = null.NewString(assigneeID, assigneeID != "")
 	task.Description = taskData.Description
-	task.Estimate = null.NewInt(estimateMins, ok)
+	task.Estimate = null.NewInt(estimateMins*60, ok)
 	task.ID = taskData.ID
 	task.Title = taskData.Title
 	task.TaskType = taskData.Type
@@ -165,33 +166,44 @@ func (r *TaskRepository) parseDuration(input string) (duration int, ok bool) {
 	return 0, false
 }
 
-// func (r *TaskRepository) Archive(projectID string, userID string) error {
-// 	association, err := r.Find(projectID, userID)
-// 	if err != nil || association == nil {
-// 		return &common.ErrorWithStatus{
-// 			Code: http.StatusNotFound,
-// 		}
-// 	}
+func (r *TaskRepository) StartLoggingWork(userID string, taskID string) error {
+	task, err := r.Find(taskID, userID)
+	if err != nil || task == nil {
+		return &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
 
-// 	switch association.Association {
-// 	case models.AssociationsEnumOwner:
-// 	case models.AssociationsEnumWriter:
-// 		break
-// 	default:
-// 		return &common.ErrorWithStatus{
-// 			Code: http.StatusForbidden,
-// 		}
-// 	}
+	err = r.StopLoggingWork(userID)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
 
-// 	association.R.Project.Active = false
+	newLog := models.WorkLog{
+		ID:        uuid.New().String(),
+		StartTime: time.Now().UTC(),
+		TaskID:    taskID,
+		UserID:    userID,
+	}
 
-// 	_, err = association.R.Project.Update(r.ctx, r.db, boil.Infer())
+	err = newLog.Insert(r.ctx, r.db, boil.Infer())
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
 
-// 	if err != nil {
-// 		return &common.ErrorWithStatus{
-// 			Code: http.StatusInternalServerError,
-// 		}
-// 	}
+	return nil
+}
 
-// 	return nil
-// }
+func (r *TaskRepository) StopLoggingWork(userID string) error {
+	openWorkLogs, err := models.WorkLogs(
+		qm.Where("work_logs.user_id = ? AND work_logs.end_time IS NULL", userID),
+	).All(r.ctx, r.db)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	_, err = openWorkLogs.UpdateAll(r.ctx, r.db, models.M{"end_time": time.Now().UTC()})
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	return nil
+}

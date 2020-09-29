@@ -3,9 +3,11 @@ package routes
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
 	"github.com/gin-gonic/gin"
+	"github.com/volatiletech/null/v8"
 )
 
 func registerProjectRoutes(e *gin.RouterGroup) {
@@ -16,8 +18,6 @@ func registerProjectRoutes(e *gin.RouterGroup) {
 	g.POST("/", handleCreateProject)
 	g.POST("/archive", handleArchiveProject)
 	g.POST("/setTaskOrder", handleSetTaskOrder)
-	// g.PUT("/:projectID", handleUpdate)
-	// g.DELETE("/:projectID", handleDelete)
 }
 
 func handleGetProjects(c *gin.Context) {
@@ -61,19 +61,19 @@ func handleGetProject(c *gin.Context) {
 		return
 	}
 
+	workingTaskID := null.NewString("", false)
 	taskStatuses := association.R.Project.R.TaskStatuses
-	statusDatas := make([]data.StatusRead, len(taskStatuses))
+	statusDatas := make([]data.StatusRead, 0)
 	taskDatas := make([]data.TaskGrid, 0)
-	for i, s := range taskStatuses {
-		statusTasks := make([]data.TaskGrid, len(s.R.Tasks))
-		for j, t := range s.R.Tasks {
+	for _, s := range taskStatuses {
+		if !s.Active {
+			continue
+		}
+
+		statusTasks := make([]data.TaskGrid, 0)
+		for _, t := range s.R.Tasks {
 			if !t.Active {
 				continue
-			}
-
-			estimateStr := ""
-			if t.Estimate.Valid {
-				estimateStr = strconv.Itoa(t.Estimate.Int)
 			}
 
 			var assignee *data.UserRead = nil
@@ -85,28 +85,41 @@ func handleGetProject(c *gin.Context) {
 				}
 			}
 
-			statusTasks[j] = data.TaskGrid{
+			loggedSeconds := int64(0)
+			for _, l := range t.R.WorkLogs {
+				var endTime time.Time
+				if l.EndTime.Valid {
+					endTime = l.EndTime.Time
+				} else {
+					endTime = time.Now().UTC()
+					workingTaskID = null.StringFrom(t.ID)
+				}
+				loggedSeconds += (endTime.Unix() - l.StartTime.Unix())
+			}
+
+			statusTasks = append(statusTasks, data.TaskGrid{
 				Description: t.Description,
 				ID:          t.ID,
 				Identifier:  association.R.Project.Abbreviation + "-" + strconv.Itoa(t.Number),
 				Timing: &data.TimingGrid{
-					Estimate: estimateStr,
-					Current:  "",
+					Estimate: t.Estimate,
+					Current:  loggedSeconds,
 				},
 				StatusID: t.TaskStatusID,
 				Type:     t.TaskType,
 				Title:    t.Title,
 				Ordinal:  t.Ordinal,
 				Assignee: assignee,
-			}
+			})
 		}
 
 		taskDatas = append(taskDatas, statusTasks...)
 
-		statusDatas[i] = data.StatusRead{
-			ID:   s.ID,
-			Name: s.Name,
-		}
+		statusDatas = append(statusDatas, data.StatusRead{
+			ID:      s.ID,
+			Name:    s.Name,
+			Ordinal: s.Ordinal,
+		})
 	}
 
 	projData := data.ProjectDetail{
@@ -117,6 +130,7 @@ func handleGetProject(c *gin.Context) {
 		Name:            association.R.Project.Name,
 		Statuses:        statusDatas,
 		Tasks:           taskDatas,
+		WorkingTaskID:   workingTaskID,
 	}
 
 	c.JSON(http.StatusOK, projData)
@@ -172,6 +186,7 @@ func handleSetTaskOrder(c *gin.Context) {
 	err = projectRepo.SetTaskOrder(taskOrder, userID)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	c.Status(200)

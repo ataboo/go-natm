@@ -10,9 +10,11 @@ export interface ICardActions {
 
     getDraggedCardId(): string
 
-    getActiveTaskId(): string
+    getActiveTaskId(): string | undefined
 
-    setActiveTaskId(id: string): void
+    startLoggingWork(id: string): void
+
+    stopLoggingWork(): void
 
     saveTaskOrder(): void
 
@@ -25,4 +27,8 @@ export interface ICardActions {
     archiveStatus(statusId: string): Promise<boolean>
 
     updateTask(updateData: TaskUpdate): Promise<boolean>
+
+    getMaxStatusOrdinal(): number;
+
+    stepStatusOrdinal(statusID: string, step: number): Promise<boolean>;
 }

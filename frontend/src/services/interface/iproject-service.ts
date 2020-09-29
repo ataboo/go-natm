@@ -17,9 +17,9 @@ export interface IProjectService {
 
     emptyProject(): ProjectDetails;
 
-    setActiveTaskId(id: string): Promise<boolean>;
+    startLoggingWork(id: string): Promise<boolean>;
 
-    getActiveTaskId(): Promise<string>;
+    stopLoggingWork(): Promise<boolean>;
 
     createTaskStatus(data: StatusCreate): Promise<boolean>;
 
@@ -27,9 +27,11 @@ export interface IProjectService {
 
     archiveTask(taskId: string): Promise<boolean>;
 
-    archiveStatus(statusId: string): Promise<boolean>;
+    archiveStatus(statusID: string): Promise<boolean>;
     
     updateTask(updateData: TaskUpdate): Promise<boolean>
 
     saveTaskOrder(taskOrderData: ProjectTaskOrder): Promise<boolean>
+
+    stepStatusOrdinal(statusID: string, step: number): Promise<boolean>
 }

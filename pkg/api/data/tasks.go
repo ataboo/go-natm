@@ -1,8 +1,10 @@
 package data
 
+import "github.com/volatiletech/null/v8"
+
 type TimingGrid struct {
-	Estimate string `json:"estimate"`
-	Current  string `json:"current"`
+	Estimate null.Int `json:"estimate"`
+	Current  int64    `json:"current"`
 }
 
 type TaskGrid struct {

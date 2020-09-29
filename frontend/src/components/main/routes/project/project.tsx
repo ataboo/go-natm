@@ -1,19 +1,18 @@
 import React, { Component } from 'react';
 import './project.scss';
 import { Column } from './column';
-import { ProjectDetails as ProjectModel, cloneProject } from '../../../../models/project';
+import { ProjectDetails as ProjectModel, cloneProject, ProjectDetails } from '../../../../models/project';
 import { ServiceContext } from '../../../../context/service';
 import { ICardActions } from './icardactions';
 import { IProjectService } from '../../../../services/interface/iproject-service';
 import { AddStatus } from './addstatus/addstatus';
 import { StatusCreate } from '../../../../models/status';
 import { TaskUpdate } from '../../../../models/task';
-import { idText } from 'typescript';
 
 interface IProjectState {
   projectData: ProjectModel;
   draggedCardId: string;
-  activeTaskId: string;
+  activeTaskId?: string;
 }
 
 type ProjectProps ={
@@ -25,13 +24,12 @@ export class Project extends Component<ProjectProps, IProjectState> {
 
   async componentDidMount() {
     const id = this.props.id;
-    const projectData = await this.context.projectService.getProject(id);
-    const activeTaskId = await this.context.projectService.getActiveTaskId();
+    const projectData : ProjectDetails = await this.context.projectService.getProject(id);
 
     this.setState({
       draggedCardId: "",
       projectData: projectData,
-      activeTaskId: activeTaskId
+      activeTaskId: await projectData.workingTaskID,
     });
   }
 
@@ -57,11 +55,11 @@ export class Project extends Component<ProjectProps, IProjectState> {
     };
   };
 
-  setActiveTaskId() {
+  startLoggingWork() {
     return (id: string) => {
       const projectService: IProjectService = this.context.projectService;
-      projectService.setActiveTaskId(id)
-        .then((success) => {
+      projectService.startLoggingWork(id)
+        .then(success => {
           if (!success) {
             console.error("failed to activate task");
             return;
@@ -72,6 +70,25 @@ export class Project extends Component<ProjectProps, IProjectState> {
             activeTaskId: id
           })
         })
+    }
+  }
+
+  stopLoggingWork() {
+    return () => {
+      const projectService: IProjectService = this.context.projectService;
+      projectService.stopLoggingWork()
+        .then(success => {
+          if (!success) {
+            console.error("failed to stop work");
+            return;
+          }
+
+          this.setState({
+            projectData: this.state.projectData,
+            draggedCardId: this.state.draggedCardId,
+            activeTaskId: undefined
+          })
+        });
     }
   }
 
@@ -87,7 +104,7 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const newData = await projectService.getProject(this.props.id);
 
         this.setState({
-          activeTaskId: this.state.activeTaskId,
+          activeTaskId: newData.workingTaskID,
           draggedCardId: this.state.draggedCardId,
           projectData: newData,
         });
@@ -105,6 +122,9 @@ export class Project extends Component<ProjectProps, IProjectState> {
     let sortedCards = (statusId: string) => this.state.projectData.tasks.filter(t => t.statusId === statusId).sort((a, b) => a.ordinal - b.ordinal);
 
     const cardActions: ICardActions = {
+      getMaxStatusOrdinal: () => {
+        return Math.max.apply(null, this.state.projectData.statuses.map(s => s.ordinal))
+      },
       getDraggedCardId: () => this.state.draggedCardId,
       moveCardToStatus: this.moveCardToStatus(),
       setDraggedCardId: (cardId: string) => this.setState({
@@ -129,7 +149,8 @@ export class Project extends Component<ProjectProps, IProjectState> {
 
         return success;
       },
-      setActiveTaskId: this.setActiveTaskId(),
+      startLoggingWork: this.startLoggingWork(),
+      stopLoggingWork: this.stopLoggingWork(),
       getActiveTaskId: () => this.state.activeTaskId,
       archiveStatus: async(statusId: string) => {
         const success = await this.context.projectService.archiveStatus(statusId);
@@ -166,10 +187,22 @@ export class Project extends Component<ProjectProps, IProjectState> {
         }
 
         return success;
+      },
+      stepStatusOrdinal: async(statusID: string, step: number) => {
+        const success = await this.context.projectService.stepStatusOrdinal(statusID, step);
+        if (success) {
+          this.setState({
+            activeTaskId: this.state.activeTaskId,
+            draggedCardId: this.state.draggedCardId,
+            projectData: await this.context.projectService.getProject(this.state.projectData.id)
+          });
+        }
+
+        return success;
       }
     }
 
-    return this.state.projectData.statuses.map((status, i) => (<Column 
+    return this.state.projectData.statuses.sort((a, b) => a.ordinal - b.ordinal).map((status, i) => (<Column 
       key={status.id} 
       tasks={sortedCards(status.id)} 
       status={status} 

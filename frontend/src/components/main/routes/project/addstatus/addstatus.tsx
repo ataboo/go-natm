@@ -28,8 +28,8 @@ export const AddStatus = ({projectId, createStatus}: AddStatusProps) => {
 
     return (
         <div>
-            <button className="btn m-2 p-1 btn-primary" onClick={() => {setShow(true)}}>
-                <Plus size={24}/><span className="mr-2">Status</span>
+            <button className="btn m-2 p-1 btn-primary add-status-button" onClick={() => {setShow(true)}}>
+                <div className="d-flex"><Plus size={24}/><span className="mr-2">Status</span></div>
             </button>
             <ModalForm 
                 focusElement={nameInput} 

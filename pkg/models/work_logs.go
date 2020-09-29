@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -27,7 +28,7 @@ type WorkLog struct {
 	TaskID    string    `boil:"task_id" json:"task_id" toml:"task_id" yaml:"task_id"`
 	UserID    string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
 	StartTime time.Time `boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
-	EndTime   time.Time `boil:"end_time" json:"end_time" toml:"end_time" yaml:"end_time"`
+	EndTime   null.Time `boil:"end_time" json:"end_time,omitempty" toml:"end_time" yaml:"end_time,omitempty"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -55,12 +56,35 @@ var WorkLogColumns = struct {
 
 // Generated where
 
+type whereHelpernull_Time struct{ field string }
+
+func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var WorkLogWhere = struct {
 	ID        whereHelperstring
 	TaskID    whereHelperstring
 	UserID    whereHelperstring
 	StartTime whereHelpertime_Time
-	EndTime   whereHelpertime_Time
+	EndTime   whereHelpernull_Time
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
@@ -68,7 +92,7 @@ var WorkLogWhere = struct {
 	TaskID:    whereHelperstring{field: "\"work_logs\".\"task_id\""},
 	UserID:    whereHelperstring{field: "\"work_logs\".\"user_id\""},
 	StartTime: whereHelpertime_Time{field: "\"work_logs\".\"start_time\""},
-	EndTime:   whereHelpertime_Time{field: "\"work_logs\".\"end_time\""},
+	EndTime:   whereHelpernull_Time{field: "\"work_logs\".\"end_time\""},
 	CreatedAt: whereHelpertime_Time{field: "\"work_logs\".\"created_at\""},
 	UpdatedAt: whereHelpertime_Time{field: "\"work_logs\".\"updated_at\""},
 }

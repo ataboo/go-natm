@@ -1,5 +1,7 @@
 package data
 
+import "github.com/volatiletech/null/v8"
+
 type ProjectGrid struct {
 	ID              string `json:"id"`
 	AssociationType string `json:"associationType"`
@@ -17,6 +19,7 @@ type ProjectDetail struct {
 	Description     string       `json:"description"`
 	Statuses        []StatusRead `json:"statuses"`
 	Tasks           []TaskGrid   `json:"tasks"`
+	WorkingTaskID   null.String  `json:"workingTaskID"`
 }
 
 type ProjectCreate struct {

@@ -2,18 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import "./projectlist.scss";
 import { Link } from "react-router-dom";
 import { ProjectGrid } from "../../../../models/project";
-import { FakeProjectService } from "../../../../services/implementation/fake-project-service";
 import { ModalForm } from "../../modalform";
-import { Form, Container, Table, Row, Popover, Card } from "react-bootstrap";
-import { Plus, Trash } from "react-bootstrap-icons";
+import { Form, Container, Table, Card } from "react-bootstrap";
+import { Trash } from "react-bootstrap-icons";
 import moment from "moment";
+import ProjectService from "../../../../services/implementation/project-service";
 
 export const ProjectList = () => {
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<ProjectGrid[]>([]);
     const [showCreate, setShowCreate] = useState(false)
     const nameInput = useRef(null);
-    const projectService = new FakeProjectService()
+    const projectService = new ProjectService()
 
     const renderProjects = (projects: ProjectGrid[]) => {
         if (projects.length == 0) {

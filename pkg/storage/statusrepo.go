@@ -45,24 +45,72 @@ func (r *StatusRepository) Archive(statusID string, userID string) error {
 		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
 	}
 
-	for _, t := range status.R.Tasks {
-		if (len(otherStatuses) > 0) {
-			otherStatuses[0].ID
-		} else {
-			
-		}	
+	var taskUpdateCols models.M
+	if len(otherStatuses) > 0 {
+		taskUpdateCols = models.M{"task_status_id": otherStatuses[0].ID}
+	} else {
+		taskUpdateCols = models.M{"active": false}
 	}
 
-	var nextStatus &models.TaskStatus = nil
-	for _, status := range otherStatuses {
-		if nextStatus == nil || status.Ordinal > nextStatus.
+	_, err = status.R.Tasks.UpdateAll(r.ctx, r.db, taskUpdateCols)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
 	}
 
 	status.Active = false
 	_, err = status.Update(r.ctx, r.db, boil.Infer())
-
 	if err != nil {
 		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	if err = r.normalizeStatusOrdinals(status.ProjectID); err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	return nil
+}
+
+func (r *StatusRepository) StepOrdinal(statusID string, userID string, step int) error {
+	status, err := models.TaskStatuses(
+		qm.LeftOuterJoin("project_associations pa ON pa.project_id = task_statuses.project_id"),
+		qm.Where("pa.user_id = ? AND task_statuses.id = ?", userID, statusID),
+	).One(r.ctx, r.db)
+	if err != nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusNotFound,
+		}
+	}
+
+	statuses, err := models.TaskStatuses(
+		qm.Where("task_statuses.active = TRUE AND task_statuses.project_id = ?", status.ProjectID),
+		qm.OrderBy("ordinal"),
+	).All(r.ctx, r.db)
+	if err != nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusInternalServerError,
+		}
+	}
+
+	swappedStatusOrdinal := status.Ordinal + step
+	if swappedStatusOrdinal < 0 || swappedStatusOrdinal >= len(statuses) {
+		return &common.ErrorWithStatus{
+			Code: http.StatusBadRequest,
+		}
+	}
+
+	swappedStatus := statuses[swappedStatusOrdinal]
+	swappedStatus.Ordinal = status.Ordinal
+	status.Ordinal = swappedStatusOrdinal
+	if _, err = swappedStatus.Update(r.ctx, r.db, boil.Infer()); err != nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusInternalServerError,
+		}
+	}
+
+	if _, err = status.Update(r.ctx, r.db, boil.Infer()); err != nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusInternalServerError,
+		}
 	}
 
 	return nil
@@ -88,18 +136,41 @@ func (r *StatusRepository) Create(data *data.StatusCreate, userID string) error 
 		return err
 	}
 
-	// // .Bind(r.ctx, r.db, &maxOrdinal)
-	// if err != nil {
-	// 	return err
-	// }
+	nextOrdinal := 0
+	if maxOrdinal.MaxOrdinal.Valid {
+		nextOrdinal = int(maxOrdinal.MaxOrdinal.Int32) + 1
+	}
 
 	statusModel := models.TaskStatus{
 		ID:        uuid.New().String(),
 		Active:    true,
 		Name:      data.Name,
-		Ordinal:   int(maxOrdinal.MaxOrdinal.Int32) + 1,
+		Ordinal:   nextOrdinal,
 		ProjectID: data.ProjectID,
 	}
 
 	return statusModel.Insert(r.ctx, r.db, boil.Infer())
+}
+
+func (r *StatusRepository) normalizeStatusOrdinals(projectID string) error {
+	statuses, err := models.TaskStatuses(
+		qm.Where("project_id = ? AND active = true", projectID),
+		qm.OrderBy("ordinal"),
+	).All(r.ctx, r.db)
+	if err != nil {
+		return &common.ErrorWithStatus{
+			Code: http.StatusNotFound,
+		}
+	}
+
+	for i, s := range statuses {
+		s.Ordinal = i
+		if _, err := s.Update(r.ctx, r.db, boil.Infer()); err != nil {
+			return &common.ErrorWithStatus{
+				Code: http.StatusInternalServerError,
+			}
+		}
+	}
+
+	return nil
 }
