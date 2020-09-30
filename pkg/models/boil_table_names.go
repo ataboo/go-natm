@@ -4,6 +4,7 @@
 package models
 
 var TableNames = struct {
+	Comments            string
 	ProjectAssociations string
 	Projects            string
 	TaskStatuses        string
@@ -11,6 +12,7 @@ var TableNames = struct {
 	Users               string
 	WorkLogs            string
 }{
+	Comments:            "comments",
 	ProjectAssociations: "project_associations",
 	Projects:            "projects",
 	TaskStatuses:        "task_statuses",

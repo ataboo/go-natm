@@ -17,6 +17,8 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g.POST("/update", handleUpdateTask)
 	g.POST("/startLoggingWork", handleStartLoggingWork)
 	g.POST("/stopLoggingWork", handleStopLoggingWork)
+	g.GET("/comments/:taskID", handleGetComments)
+	g.POST("/comments", handleCreateComment)
 }
 
 func handleGetTask(ctx *gin.Context) {
@@ -135,4 +137,39 @@ func handleStopLoggingWork(ctx *gin.Context) {
 	}
 
 	ctx.Status(200)
+}
+
+func handleGetComments(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+	taskID, fail := ctx.Params.Get("taskID")
+	if fail {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	comments, err := taskRepo.GetComments(userID, taskID)
+	if err != nil {
+		handleErrorWithStatus(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, comments)
+}
+
+func handleCreateComment(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+	createData := data.CommentCreate{}
+	err := ctx.BindJSON(&createData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	commentVM, err := taskRepo.AddComment(userID, &createData)
+	if err != nil {
+		handleErrorWithStatus(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, commentVM)
 }

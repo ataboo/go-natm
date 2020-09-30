@@ -5,6 +5,7 @@ import { TaskRead } from '../../../../../../../models/task';
 import { colorForTaskTag } from '../../../../../../../services/implementation/stringhelpers';
 import { UpdateTask } from '../../updatetask';
 import { ICardActions } from '../../../icardactions';
+import { TaskDetailModal } from '../../taskdetailmodal';
 
 type CardHeaderProps = {
     cardActions: ICardActions
@@ -12,7 +13,8 @@ type CardHeaderProps = {
 }
 
 export const CardHeader = ({cardActions, task} : CardHeaderProps) => {
-    const [show, setShow] = useState(false);
+    const [showEdit, setShowEdit] = useState(false);
+    const [showDetail, setShowDetail] = useState(false);
     const cardActive = cardActions.getActiveTaskId() === task.id;
     
     const activateButton = () => {
@@ -40,13 +42,14 @@ export const CardHeader = ({cardActions, task} : CardHeaderProps) => {
     }
     
     const editButton = () => (
-        <button className="btn m-1 p-1" onClick={() => setShow(true)}><PencilSquare /></button>
+        <button className="btn m-1 p-1" onClick={() => setShowEdit(true)}><PencilSquare /></button>
     );
 
-    return (<div className="drag-card-header" onDoubleClick={() => {setShow(true)}} style={{backgroundColor: colorForTaskTag(task)}}>
+    return (<div className="drag-card-header" onDoubleClick={() => {setShowDetail(true)}} style={{backgroundColor: colorForTaskTag(task)}}>
                 <div className="task-title" title={task.title}>{task.identifier} - {task.title}</div>
                 <div className="card-btn-group">
-                    <UpdateTask task={task} show={show} setShow={setShow} updateTask={cardActions.updateTask} />
+                    <TaskDetailModal taskData={task} show={showDetail} setShow={setShowDetail} />
+                    <UpdateTask task={task} show={showEdit} setShow={setShowEdit} updateTask={cardActions.updateTask} />
                     <button className="btn m-1 p-1" onClick={handleDeleteTask}><Trash/></button>
                     <div className="card-btn-divider"></div>
                     {editButton()}

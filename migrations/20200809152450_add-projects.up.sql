@@ -5,7 +5,7 @@ CREATE TABLE projects (
    id UUID PRIMARY KEY,
    name VARCHAR (64) NOT NULL,
    abbreviation VARCHAR (64) NOT NULL,
-   description VARCHAR (128) NOT NULL,
+   description VARCHAR(64) NOT NULL,
    active BOOLEAN NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -49,6 +49,15 @@ CREATE TABLE work_logs (
    user_id UUID NOT NULL REFERENCES users(id),
    start_time TIMESTAMP NOT NULL,
    end_time TIMESTAMP,
+   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE comments (
+   id UUID PRIMARY KEY,
+   task_id UUID NOT NULL REFERENCES tasks(id),
+   user_id UUID NOT NULL REFERENCES users(id),
+   message TEXT NOT NULL,
    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

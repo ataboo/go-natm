@@ -207,3 +207,70 @@ func (r *TaskRepository) StopLoggingWork(userID string) error {
 
 	return nil
 }
+
+func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCreate) (*data.CommentRead, error) {
+	_, err := r.Find(commentCreate.TaskID, userID)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
+
+	user, err := models.FindUser(r.ctx, r.db, userID)
+	if user == nil || err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	comment := models.Comment{
+		ID:      uuid.New().String(),
+		TaskID:  commentCreate.TaskID,
+		UserID:  userID,
+		Message: commentCreate.Message,
+	}
+
+	err = comment.Insert(r.ctx, r.db, boil.Infer())
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	commentVM := &data.CommentRead{
+		Author: &data.UserRead{
+			Email: user.Email,
+			ID:    user.ID,
+			Name:  user.Name,
+		},
+		Message:   commentCreate.Message,
+		TaskID:    commentCreate.TaskID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	return commentVM, nil
+}
+
+func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.CommentRead, error) {
+	task, err := r.Find(taskID, userID)
+	if err != nil || task == nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
+
+	comments, err := models.Comments(qm.Where("task_id = ?", taskID), qm.With("User"), qm.OrderBy("created_at")).All(r.ctx, r.db)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	commentVMs := make([]data.CommentRead, len(comments))
+	for i, c := range comments {
+		commentVMs[i] = *&data.CommentRead{
+			Author: &data.UserRead{
+				Email: c.R.User.Email,
+				ID:    c.R.User.ID,
+				Name:  c.R.User.Name,
+			},
+			CreatedAt: c.CreatedAt.UTC(),
+			UpdatedAt: c.UpdatedAt.UTC(),
+			Message:   c.Message,
+			TaskID:    c.TaskID,
+		}
+	}
+
+	return commentVMs, nil
+}
