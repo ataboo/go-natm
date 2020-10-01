@@ -8,9 +8,10 @@ type CommentCreate struct {
 }
 
 type CommentRead struct {
+	ID        string    `json:"id"`
 	Message   string    `json:"message"`
 	TaskID    string    `json:"taskId"`
-	Author    *UserRead `json:"user"`
+	Author    *UserRead `json:"author"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }

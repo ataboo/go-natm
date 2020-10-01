@@ -23,36 +23,36 @@ export default class ProjectService implements IProjectService {
     async updateTask(updateData: TaskUpdate): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}tasks/update`, JSON.stringify(updateData));
         
-        return response.status == 200;
+        return response.status === 200;
     }
     
     async archiveTask(taskID: string): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}tasks/archive`, JSON.stringify({task_id: taskID}));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     async archiveStatus(statusID: string): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}statuses/archive`, JSON.stringify({status_id: statusID}));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     async createTask(data: TaskCreate): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}tasks/create`, JSON.stringify(data));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     async createTaskStatus(data: StatusCreate): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}statuses/`, JSON.stringify(data));
         
-        return response.status == 200;
+        return response.status === 200;
     }
     
     async startLoggingWork(id: string): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}tasks/startLoggingWork`, JSON.stringify({ task_id: id }));
-        if (response.status == 200) {
+        if (response.status === 200) {
             this.activeTaskId = id;
 
             return true;
@@ -63,7 +63,7 @@ export default class ProjectService implements IProjectService {
 
     async stopLoggingWork(): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}tasks/stopLoggingWork`);
-        if (response.status == 200) {
+        if (response.status === 200) {
             this.activeTaskId = "";
             return true;
         }
@@ -147,7 +147,7 @@ export default class ProjectService implements IProjectService {
     async createProject(project: ProjectCreate): Promise<boolean> {
         const response = await this.client.post(this.hostUri + "projects/", JSON.stringify(project));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     async archiveProject(id: string): Promise<boolean> {
@@ -155,7 +155,7 @@ export default class ProjectService implements IProjectService {
             projectID: id
         }));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     emptyProject(): ProjectDetails {
@@ -172,24 +172,30 @@ export default class ProjectService implements IProjectService {
     async saveTaskOrder(taskOrder: ProjectTaskOrder): Promise<boolean> {
         var response = await this.client.post(`${this.hostUri}projects/setTaskOrder`, JSON.stringify(taskOrder));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
     async stepStatusOrdinal(statusID: string, step: number): Promise<boolean> {
         var response = await this.client.post(`${this.hostUri}statuses/stepOrdinal`, JSON.stringify({status_id: statusID, step: step}));
 
-        return response.status == 200;
+        return response.status === 200;
     }
 
-    async getComments(statusID: string): Promise<CommentRead[]> {
-        var response = await this.client.get(`${this.hostUri}statuses/comments/${statusID}`);
+    async getComments(taskID: string): Promise<CommentRead[]> {
+        var response = await this.client.get(`${this.hostUri}tasks/${taskID}/comments`);
 
         return response.data as CommentRead[];
     }
 
     async addComment(createData: CommentCreate): Promise<CommentRead> {
-        var response = await this.client.post(`${this.hostUri}statuses/comments`, JSON.stringify(createData));
+        var response = await this.client.post(`${this.hostUri}tasks/comments`, JSON.stringify(createData));
 
         return response.data as CommentRead;
+    }
+
+    async deleteComment(commentID: string): Promise<boolean> {
+        var response = await this.client.post(`${this.hostUri}tasks/comments/delete`, JSON.stringify({commentID: commentID}));
+
+        return response.status === 200;
     }
 }

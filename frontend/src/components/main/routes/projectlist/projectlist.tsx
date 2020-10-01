@@ -5,7 +5,7 @@ import { ProjectGrid } from "../../../../models/project";
 import { ModalForm } from "../../modalform";
 import { Form, Container, Table, Card } from "react-bootstrap";
 import { Trash } from "react-bootstrap-icons";
-import moment from "moment";
+import { DateTime } from "luxon";
 import ProjectService from "../../../../services/implementation/project-service";
 
 export const ProjectList = () => {
@@ -16,24 +16,26 @@ export const ProjectList = () => {
     const projectService = new ProjectService()
 
     const renderProjects = (projects: ProjectGrid[]) => {
-        if (projects.length == 0) {
+        if (projects.length === 0) {
             return (<div>No Projects Found</div>)
         }
 
         const projectLinks = projects.map(p => (
-                <tr>
+                <tr key={p.id}>
                     <td><Link key={p.id} to={"/project/" + p.id}>{p.name} ({p.abbreviation})</Link></td>
                     <td>{p.associationType}</td>
-                    <td>{moment.unix(p.lastUpdated).toString()}</td>
+                    <td>{DateTime.fromSeconds(p.lastUpdated).toLocaleString(DateTime.DATETIME_SHORT)}</td>
                     <td align="right"><button className="btn m-1 p-1" onClick={() => handleArchiveProject(p.id)}><Trash/></button></td>
                 </tr>
         ))
         return (
             <Table className="project-table">
                 <thead>
-                    <th>Project</th>
-                    <th>Association</th>
-                    <th colSpan={2}>Last Update</th>
+                    <tr>
+                        <th>Project</th>
+                        <th>Association</th>
+                        <th colSpan={2}>Last Update</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {projectLinks}
@@ -94,14 +96,13 @@ export const ProjectList = () => {
     }
 
     useEffect(() => {
-        const fetchProjects = async() => {
-            const projects = await projectService.getProjectList()
-            setProjects(projects);
-            setLoading(false);
+        if(loading) {
+            projectService.getProjectList().then(projects => {
+                setProjects(projects);
+                setLoading(false);
+            });
         }
-
-        fetchProjects();
-    }, [])
+    }, [ projectService ]);
 
     if (loading) {
         return (<div>Loading...</div>);

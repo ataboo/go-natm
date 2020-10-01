@@ -48,7 +48,7 @@ export const CardHeader = ({cardActions, task} : CardHeaderProps) => {
     return (<div className="drag-card-header" onDoubleClick={() => {setShowDetail(true)}} style={{backgroundColor: colorForTaskTag(task)}}>
                 <div className="task-title" title={task.title}>{task.identifier} - {task.title}</div>
                 <div className="card-btn-group">
-                    <TaskDetailModal taskData={task} show={showDetail} setShow={setShowDetail} />
+                    <TaskDetailModal taskData={task} show={showDetail} setShow={setShowDetail} cardActions={cardActions} />
                     <UpdateTask task={task} show={showEdit} setShow={setShowEdit} updateTask={cardActions.updateTask} />
                     <button className="btn m-1 p-1" onClick={handleDeleteTask}><Trash/></button>
                     <div className="card-btn-divider"></div>

@@ -3,9 +3,13 @@ import "./routes.scss";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom"
 import {ProjectList} from "./projectlist";
 import {Project} from "./project";
+import { User } from "../../../models/user";
 
+type RouteProps = {
+    currentUser: User
+}
 
-export function Routes() {
+export function Routes({currentUser}: RouteProps) {
     return (
         <Router>
             <Switch>
@@ -13,7 +17,7 @@ export function Routes() {
                     <ProjectList />
                 </Route>
                 <Route exact path="/project/:id" render={(props) => {
-                    return (<Project id={props.match.params.id}/>)
+                    return (<Project id={props.match.params.id} currentUser={currentUser}/>)
                 }}/>
             </Switch>
         </Router>

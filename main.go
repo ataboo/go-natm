@@ -3,11 +3,11 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/ataboo/go-natm/pkg/api/data"
 	"github.com/ataboo/go-natm/pkg/api/routes"
 	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/ataboo/go-natm/pkg/database"
@@ -86,9 +86,14 @@ func main() {
 					c.AbortWithError(http.StatusInternalServerError, errors.New("failed to find user model"))
 					return
 				}
-				c.JSON(http.StatusOK, map[string]string{"name": user.Name})
 
-				fmt.Printf("Found user: %+v\n", user)
+				userVM := data.UserRead{
+					Email: user.Email,
+					ID:    user.ID,
+					Name:  user.Name,
+				}
+
+				c.JSON(http.StatusOK, userVM)
 			})
 
 			api.POST("/logout", func(c *gin.Context) {

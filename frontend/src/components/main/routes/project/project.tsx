@@ -8,6 +8,9 @@ import { IProjectService } from '../../../../services/interface/iproject-service
 import { AddStatus } from './addstatus/addstatus';
 import { StatusCreate } from '../../../../models/status';
 import { TaskUpdate } from '../../../../models/task';
+import { CommentCreate, CommentRead } from '../../../../models/comment';
+import ProjectService from '../../../../services/implementation/project-service';
+import { User } from '../../../../models/user';
 
 interface IProjectState {
   projectData: ProjectModel;
@@ -16,7 +19,8 @@ interface IProjectState {
 }
 
 type ProjectProps ={
-  id: string
+  id: string,
+  currentUser: User
 };
 
 export class Project extends Component<ProjectProps, IProjectState> {
@@ -29,7 +33,7 @@ export class Project extends Component<ProjectProps, IProjectState> {
     this.setState({
       draggedCardId: "",
       projectData: projectData,
-      activeTaskId: await projectData.workingTaskID,
+      activeTaskId: projectData.workingTaskID,
     });
   }
 
@@ -199,7 +203,23 @@ export class Project extends Component<ProjectProps, IProjectState> {
         }
 
         return success;
-      }
+      },
+      addComment: async(data: CommentCreate): Promise<CommentRead> => {
+        const projService : ProjectService = this.context.projectService;
+        
+        return await projService.addComment(data);
+      },
+      loadComments: async(taskID: string): Promise<CommentRead[]> => {
+        const projService : ProjectService = this.context.projectService;
+        
+        return await projService.getComments(taskID)
+      },
+      deleteComment: async(commentID: string): Promise<boolean> => {
+        const projService: ProjectService = this.context.projectService;
+
+        return await projService.deleteComment(commentID);
+      },
+      getCurrentUser: (): User => this.props.currentUser,
     }
 
     return this.state.projectData.statuses.sort((a, b) => a.ordinal - b.ordinal).map((status, i) => (<Column 

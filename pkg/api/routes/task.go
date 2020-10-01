@@ -17,14 +17,15 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g.POST("/update", handleUpdateTask)
 	g.POST("/startLoggingWork", handleStartLoggingWork)
 	g.POST("/stopLoggingWork", handleStopLoggingWork)
-	g.GET("/comments/:taskID", handleGetComments)
+	g.GET("/:taskID/comments", handleGetComments)
 	g.POST("/comments", handleCreateComment)
+	g.POST("/comments/delete", handleDeleteComment)
 }
 
 func handleGetTask(ctx *gin.Context) {
 	userID := data.MustGetActingUserID(ctx)
-	taskID, fail := ctx.Params.Get("taskID")
-	if fail {
+	taskID, ok := ctx.Params.Get("taskID")
+	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}
@@ -141,8 +142,8 @@ func handleStopLoggingWork(ctx *gin.Context) {
 
 func handleGetComments(ctx *gin.Context) {
 	userID := data.MustGetActingUserID(ctx)
-	taskID, fail := ctx.Params.Get("taskID")
-	if fail {
+	taskID, ok := ctx.Params.Get("taskID")
+	if !ok {
 		ctx.AbortWithStatus(http.StatusNotFound)
 		return
 	}
@@ -172,4 +173,25 @@ func handleCreateComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, commentVM)
+}
+
+func handleDeleteComment(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+	deleteData := struct {
+		CommentID string `json:"commentID"`
+	}{}
+
+	err := ctx.BindJSON(&deleteData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	err = taskRepo.DeleteComment(userID, deleteData.CommentID)
+	if err != nil {
+		handleErrorWithStatus(err, ctx)
+		return
+	}
+
+	ctx.Status(http.StatusOK)
 }

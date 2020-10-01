@@ -1,5 +1,7 @@
+import { CommentCreate, CommentRead } from "../../../../models/comment";
 import { StatusCreate, StatusRead } from "../../../../models/status";
 import { TaskCreate, TaskRead, TaskUpdate } from "../../../../models/task";
+import { User } from "../../../../models/user";
 
 export interface ICardActions {
     moveCardToStatus(draggedId: string, statusId: string): void
@@ -31,4 +33,12 @@ export interface ICardActions {
     getMaxStatusOrdinal(): number;
 
     stepStatusOrdinal(statusID: string, step: number): Promise<boolean>;
+
+    loadComments(taskID: string): Promise<CommentRead[]>;
+
+    addComment(data: CommentCreate): Promise<CommentRead>;
+
+    deleteComment(id: string): Promise<boolean>;
+
+    getCurrentUser(): User;
 }

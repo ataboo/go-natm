@@ -85,9 +85,6 @@ func (h *GoogleOAuthService) handleAuthCallback(c *gin.Context) {
 		c.AbortWithError(401, errors.New("failed to get profile"))
 	}
 
-	fmt.Println("Email: " + userInfo.Email)
-	fmt.Println("Name: " + userInfo.Name)
-
 	user := h.userRepo.FindByEmail(userInfo.Email)
 	creating := user == nil
 	if creating {

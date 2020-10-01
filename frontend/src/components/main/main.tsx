@@ -3,7 +3,6 @@ import "./main.scss";
 import { Header } from "./header"
 import { AuthContext } from '../../context/auth';
 import { LoginPage } from "./loginpage";
-import { Container } from "react-bootstrap";
 import { Routes } from "./routes";
 import { ServiceContext, defaultServiceContext } from "../../context/service";
 import { User } from "../../models/user";
@@ -57,7 +56,7 @@ class Main extends Component<any, IMainState> {
                     <ServiceContext.Provider value={defaultServiceContext()} >
                         <Header/>
                         <div className="main-body">
-                            {this.state.user != null ? <Routes /> : <LoginPage/>}
+                            {this.state.user != null ? <Routes currentUser={this.state.user} /> : <LoginPage/>}
                         </div>
                     </ServiceContext.Provider>
                 </AuthContext.Provider>);

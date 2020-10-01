@@ -5,7 +5,7 @@ import { CardHeader } from './cardheader';
 import { TaskRead } from '../../../../../../models/task';
 import { userNameAsInitials } from '../../../../../../services/implementation/stringhelpers';
 import classNames from 'classnames';
-import moment from 'moment';
+import {DateTime, Duration} from "luxon";
 
 type CardProps = {
     task: TaskRead
@@ -59,7 +59,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">{moment.utc(currentTime * 1000).format("H:mm")} | {task.timing.estimate ? (task.timing.estimate / 3600.0).toFixed(2) + "h" : '-'}</div>)
+        return (<div className="timing-indicator">{Duration.fromMillis(currentTime * 1000).toFormat("hh:mm:ss")} | {task.timing.estimate ? (task.timing.estimate / 3600.0).toFixed(2) + "h" : '-'}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();

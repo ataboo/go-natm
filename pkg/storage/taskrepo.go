@@ -237,6 +237,7 @@ func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCr
 			ID:    user.ID,
 			Name:  user.Name,
 		},
+		ID:        comment.ID,
 		Message:   commentCreate.Message,
 		TaskID:    commentCreate.TaskID,
 		CreatedAt: time.Now().UTC(),
@@ -252,7 +253,7 @@ func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.Comme
 		return nil, &common.ErrorWithStatus{Code: http.StatusNotFound}
 	}
 
-	comments, err := models.Comments(qm.Where("task_id = ?", taskID), qm.With("User"), qm.OrderBy("created_at")).All(r.ctx, r.db)
+	comments, err := models.Comments(qm.Where("task_id = ?", taskID), qm.Load("User"), qm.OrderBy("created_at")).All(r.ctx, r.db)
 	if err != nil {
 		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
 	}
@@ -269,8 +270,26 @@ func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.Comme
 			UpdatedAt: c.UpdatedAt.UTC(),
 			Message:   c.Message,
 			TaskID:    c.TaskID,
+			ID:        c.ID,
 		}
 	}
 
 	return commentVMs, nil
+}
+
+func (r *TaskRepository) DeleteComment(userID string, commentID string) error {
+	comment, err := models.Comments(qm.Where("id = ?", commentID)).One(r.ctx, r.db)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
+
+	if comment.UserID != userID {
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
+	if _, err = comment.Delete(r.ctx, r.db); err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	return nil
 }
