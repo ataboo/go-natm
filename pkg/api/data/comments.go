@@ -15,3 +15,9 @@ type CommentRead struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type CommentUpdate struct {
+	ID      string `json:"id"`
+	Message string `json:"message"`
+	TaskID  string `json:"taskId"`
+}

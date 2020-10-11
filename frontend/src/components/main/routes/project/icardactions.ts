@@ -1,4 +1,4 @@
-import { CommentCreate, CommentRead } from "../../../../models/comment";
+import { CommentCreate, CommentRead, CommentUpdate } from "../../../../models/comment";
 import { StatusCreate, StatusRead } from "../../../../models/status";
 import { TaskCreate, TaskRead, TaskUpdate } from "../../../../models/task";
 import { User } from "../../../../models/user";
@@ -39,6 +39,8 @@ export interface ICardActions {
     addComment(data: CommentCreate): Promise<CommentRead>;
 
     deleteComment(id: string): Promise<boolean>;
+
+    updateComment(data: CommentUpdate): Promise<CommentRead>;
 
     getCurrentUser(): User;
 }

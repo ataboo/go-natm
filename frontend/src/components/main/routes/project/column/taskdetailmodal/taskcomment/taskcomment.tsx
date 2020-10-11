@@ -1,19 +1,21 @@
 import { DateTime } from 'luxon';
 import React, { FormEvent, useState } from 'react';
-import { Button, Card } from 'react-bootstrap';
-import { PencilSquare, Trash } from 'react-bootstrap-icons';
-import { CommentRead } from '../../../../../../../models/comment';
+import { Button, ButtonGroup, Card, Form } from 'react-bootstrap';
+import { CheckSquare, PencilSquare, Trash, XSquare } from 'react-bootstrap-icons';
+import { CommentRead, CommentUpdate } from '../../../../../../../models/comment';
 import { User } from '../../../../../../../models/user';
 
 type TaskCommentProps = {
     comment: CommentRead;
     deleteComment: (id: string) => void;
+    updateComment: (data: CommentUpdate) => Promise<void>;
     currentUser: User;
 }
 
-export const TaskComment = ({comment, deleteComment, editComment, currentUser}: TaskCommentProps) => {
+export const TaskComment = ({comment, deleteComment, updateComment, currentUser}: TaskCommentProps) => {
     const [editing, setEditing] = useState(false);
-    
+    const [submitting, setSubmitting] = useState(false);
+
     const renderButtons = () => {
         if (currentUser.id === comment.author.id) {
             return (<div>
@@ -22,9 +24,38 @@ export const TaskComment = ({comment, deleteComment, editComment, currentUser}: 
             </div>);
         }
     }
+
+    const renderEditingForm = () => {
+        return (
+            <Form onSubmit={onEditFormSubmit} id="comment-form">
+                <Form.Group controlId="message-control">
+                    <Form.Control disabled={submitting} as="textarea" rows={2} name="message" defaultValue={comment.message} ></Form.Control>
+                </Form.Group>
+
+                <ButtonGroup>
+                    <Button className="btn btn-light" onClick={() => setEditing(false)}>Cancel</Button>
+                    <Button disabled={submitting} type="submit" className="btn btn-success">Save</Button>
+                </ButtonGroup>
+            </Form>);
+    }
+
+    const renderEditingReadonly = () => {
+        return (<span>{comment.message}</span>);
+    }
     
     const onEditFormSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
 
+        setSubmitting(true);
+        updateComment({
+            id: comment.id,
+            message: formData.get("message") as string,
+            taskID: comment.taskID
+        }).then((success) => {
+            setSubmitting(false);
+            setEditing(false);
+        });
     }
     
     return (
@@ -34,9 +65,7 @@ export const TaskComment = ({comment, deleteComment, editComment, currentUser}: 
                 {renderButtons()}
         </Card.Header>
         <Card.Body>
-            <Card.Text>{{if(editing) {
-                    return (<span>{comment.message}</span>);
-                }}}</Card.Text>
+            <Card.Text>{editing ? renderEditingForm() : renderEditingReadonly()}</Card.Text>
         </Card.Body>
     </Card>);
 };

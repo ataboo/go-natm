@@ -247,6 +247,38 @@ func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCr
 	return commentVM, nil
 }
 
+func (r *TaskRepository) UpdateComment(userID string, updateData *data.CommentUpdate) (*data.CommentRead, error) {
+	comment, err := models.Comments(qm.Where("id = ?", updateData.ID), qm.Load("User")).One(r.ctx, r.db)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
+
+	if comment.UserID != userID {
+		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
+	comment.Message = updateData.Message
+
+	if _, err = comment.Update(r.ctx, r.db, boil.Infer()); err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	outputVM := &data.CommentRead{
+		Author: &data.UserRead{
+			Email: comment.R.User.Email,
+			ID:    comment.R.User.ID,
+			Name:  comment.R.User.Name,
+		},
+		ID:        comment.ID,
+		Message:   comment.Message,
+		TaskID:    comment.TaskID,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	return outputVM, nil
+}
+
 func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.CommentRead, error) {
 	task, err := r.Find(taskID, userID)
 	if err != nil || task == nil {

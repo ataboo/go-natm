@@ -1,4 +1,4 @@
-import { CommentCreate, CommentRead } from "../../models/comment";
+import { CommentCreate, CommentRead, CommentUpdate } from "../../models/comment";
 import { ProjectDetails, ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
@@ -39,4 +39,6 @@ export interface IProjectService {
     getComments(statusID: string): Promise<CommentRead[]>
 
     addComment(createData: CommentCreate): Promise<CommentRead>
+
+    updateComment(data: CommentUpdate): Promise<CommentRead>
 }

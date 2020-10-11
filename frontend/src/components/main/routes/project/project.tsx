@@ -8,7 +8,7 @@ import { IProjectService } from '../../../../services/interface/iproject-service
 import { AddStatus } from './addstatus/addstatus';
 import { StatusCreate } from '../../../../models/status';
 import { TaskUpdate } from '../../../../models/task';
-import { CommentCreate, CommentRead } from '../../../../models/comment';
+import { CommentCreate, CommentRead, CommentUpdate } from '../../../../models/comment';
 import ProjectService from '../../../../services/implementation/project-service';
 import { User } from '../../../../models/user';
 
@@ -218,6 +218,11 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const projService: ProjectService = this.context.projectService;
 
         return await projService.deleteComment(commentID);
+      },
+      updateComment: async(data: CommentUpdate): Promise<CommentRead> => {
+        const projService: ProjectService = this.context.projectService;
+
+        return await projService.updateComment(data);
       },
       getCurrentUser: (): User => this.props.currentUser,
     }

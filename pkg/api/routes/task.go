@@ -20,6 +20,7 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g.GET("/:taskID/comments", handleGetComments)
 	g.POST("/comments", handleCreateComment)
 	g.POST("/comments/delete", handleDeleteComment)
+	g.POST("/comments/update", handleUpdateComment)
 }
 
 func handleGetTask(ctx *gin.Context) {
@@ -173,6 +174,24 @@ func handleCreateComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, commentVM)
+}
+
+func handleUpdateComment(ctx *gin.Context) {
+	userID := data.MustGetActingUserID(ctx)
+	updateData := data.CommentUpdate{}
+	err := ctx.BindJSON(&updateData)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	outputData, err := taskRepo.UpdateComment(userID, &updateData)
+	if err != nil {
+		handleErrorWithStatus(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, outputData)
 }
 
 func handleDeleteComment(ctx *gin.Context) {

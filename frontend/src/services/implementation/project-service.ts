@@ -3,7 +3,7 @@ import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
 import axios, { AxiosInstance } from "axios";
-import { CommentCreate, CommentRead } from "../../models/comment";
+import { CommentCreate, CommentRead, CommentUpdate } from "../../models/comment";
 
 export default class ProjectService implements IProjectService {
     client: AxiosInstance
@@ -197,5 +197,9 @@ export default class ProjectService implements IProjectService {
         var response = await this.client.post(`${this.hostUri}tasks/comments/delete`, JSON.stringify({commentID: commentID}));
 
         return response.status === 200;
+    }
+
+    async updateComment(data: CommentUpdate): Promise<CommentRead> {
+        return (await this.client.post(`${this.hostUri}tasks/comments/update`, JSON.stringify(data))).data as CommentRead;
     }
 }

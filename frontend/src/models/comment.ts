@@ -6,6 +6,10 @@ export interface CommentCreate {
     taskID: string
 };
 
+export interface CommentUpdate extends CommentCreate {
+    id: string
+}
+
 export interface CommentRead extends CommentCreate {
     id: string,
     author: User,

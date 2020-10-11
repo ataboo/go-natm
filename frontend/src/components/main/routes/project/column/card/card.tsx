@@ -6,6 +6,7 @@ import { TaskRead } from '../../../../../../models/task';
 import { userNameAsInitials } from '../../../../../../services/implementation/stringhelpers';
 import classNames from 'classnames';
 import {DateTime, Duration} from "luxon";
+import { formatHMSDuration, formatHrDuration } from '../../../../../../constants';
 
 type CardProps = {
     task: TaskRead
@@ -18,7 +19,6 @@ type DragStartProps = {
 };
 
 export const Card = ({task, statusId, cardActions} : CardProps) => {
-    //until dragend event is fixed in firefox
     const getOpacity = () => cardActions.getDraggedCardId() === task.id ? 0.2 : 1;
     const elementRef = React.useRef<HTMLDivElement>(null);
 
@@ -59,7 +59,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">{Duration.fromMillis(currentTime * 1000).toFormat("hh:mm:ss")} | {task.timing.estimate ? (task.timing.estimate / 3600.0).toFixed(2) + "h" : '-'}</div>)
+        return (<div className="timing-indicator">{formatHMSDuration(currentTime)} | {formatHrDuration(task.timing.estimate)}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();
