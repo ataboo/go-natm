@@ -5,8 +5,7 @@ import { CardHeader } from './cardheader';
 import { TaskRead } from '../../../../../../models/task';
 import { userNameAsInitials } from '../../../../../../services/implementation/stringhelpers';
 import classNames from 'classnames';
-import {DateTime, Duration} from "luxon";
-import { formatHMSDuration, formatHrDuration } from '../../../../../../constants';
+import { formatHMSDuration, formatHrDuration, formatReadibleDuration } from '../../../../../../constants';
 
 type CardProps = {
     task: TaskRead
@@ -59,7 +58,7 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
     }
 
     function renderTiming() {
-        return (<div className="timing-indicator">{formatHMSDuration(currentTime)} | {formatHrDuration(task.timing.estimate)}</div>)
+        return (<div className="timing-indicator">{formatHMSDuration(currentTime)} | {formatReadibleDuration(task.timing.estimate)}</div>)
     }
 
     const activeTaskId = cardActions.getActiveTaskId();
@@ -73,18 +72,13 @@ export const Card = ({task, statusId, cardActions} : CardProps) => {
         }
     )
 
-    return (<div 
-                ref={elementRef}
-                className={cardClassNames}
-                onDragStart = {(event) => onDragStart(event, {id: task.id})}
-                draggable
-                onDragOver={(event)=>onDragHover(event)}
-                style={{opacity: getOpacity(), userSelect: "none"}}
-            >
-                <CardHeader 
-                    cardActions={cardActions}
-                    task={task}
-                />
+    return (<div ref={elementRef}
+                 className={cardClassNames}
+                 onDragStart = {(event) => onDragStart(event, {id: task.id})}
+                 draggable
+                 onDragOver={(event)=>onDragHover(event)}
+                 style={{opacity: getOpacity(), userSelect: "none"}}>
+                <CardHeader cardActions={cardActions} task={task} currentTime={currentTime}/>
                 <div className={"card-body-group"}>
                     <div className="assignee-link">
                         <a href={"mailto:"+task.assignee?.email}>{task.assignee == null ? "" : (userNameAsInitials(task.assignee!))}</a>

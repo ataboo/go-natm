@@ -4,14 +4,21 @@ import { Link } from "react-router-dom";
 import { ProjectGrid } from "../../../../models/project";
 import { ModalForm } from "../../modalform";
 import { Form, Container, Table, Card } from "react-bootstrap";
-import { Trash } from "react-bootstrap-icons";
+import { Share, Trash } from "react-bootstrap-icons";
 import { DateTime } from "luxon";
 import ProjectService from "../../../../services/implementation/project-service";
+import { ProjectShare } from "./projectshare";
+import { User } from "../../../../models/user";
 
-export const ProjectList = () => {
+type ProjectListProps = {
+    currentUser: User
+};
+
+export const ProjectList = ({currentUser}: ProjectListProps) => {
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<ProjectGrid[]>([]);
     const [showCreate, setShowCreate] = useState(false)
+    const [sharingProjectGridData, setSharingProjectGridData] = useState<ProjectGrid | undefined>(undefined);
     const nameInput = useRef(null);
     const projectService = new ProjectService()
 
@@ -25,7 +32,11 @@ export const ProjectList = () => {
                     <td><Link key={p.id} to={"/project/" + p.id}>{p.name} ({p.abbreviation})</Link></td>
                     <td>{p.associationType}</td>
                     <td>{DateTime.fromSeconds(p.lastUpdated).toLocaleString(DateTime.DATETIME_SHORT)}</td>
-                    <td align="right"><button className="btn m-1 p-1" onClick={() => handleArchiveProject(p.id)}><Trash/></button></td>
+                    <td align="right">
+                        {/* // TODO user has role */}
+                        <button className="btn m-1 p-1" onClick={() => setSharingProjectGridData(p)}><Share/></button>
+                        <button className="btn m-1 p-1" onClick={() => handleArchiveProject(p.id)}><Trash/></button>
+                    </td>
                 </tr>
         ))
         return (
@@ -124,6 +135,14 @@ export const ProjectList = () => {
                 show={showCreate}
                 title="Create New Project"
             />
+            {sharingProjectGridData !== undefined ? 
+            (<ProjectShare
+                currentUser={currentUser}
+                loadProjectDetail={async projectId => projectService.getProject(projectId)}
+                projectGridData={sharingProjectGridData}
+                showShare={true}
+                onClose={() => setSharingProjectGridData(undefined)}
+            />) : ""}
             </Card.Body>
         </Card>
     </Container>)

@@ -16,8 +16,6 @@ export interface IProjectService {
 
     archiveProject(id: string): Promise<boolean>;
 
-    emptyProject(): ProjectDetails;
-
     startLoggingWork(id: string): Promise<boolean>;
 
     stopLoggingWork(): Promise<boolean>;

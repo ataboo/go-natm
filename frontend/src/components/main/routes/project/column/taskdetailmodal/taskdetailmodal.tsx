@@ -1,24 +1,23 @@
 import React, { FormEvent, useState } from 'react';
 import { Button, ButtonGroup, Form, Modal } from 'react-bootstrap';
 import { CommentRead, CommentUpdate } from '../../../../../../models/comment';
-import { TaskRead } from '../../../../../../models/task';
+import { TaskRead, TaskUpdate } from '../../../../../../models/task';
 import { ICardActions } from '../../icardactions';
 import './taskdetailmodal.scss';
 import { TaskComment } from './taskcomment';
-import { formatHMSDuration, formatHrDuration } from '../../../../../../constants';
-import { setSyntheticTrailingComments } from 'typescript';
+import { formatHMSDuration, formatReadibleDuration } from '../../../../../../constants';
 import { TaskType } from '../../../../../../enums';
-import { DistributeVertical, PencilSquare } from 'react-bootstrap-icons';
 import { TaskAddComment } from './taskaddcomment';
 
 type TaskDetailProps = {
     taskData: TaskRead,
     show: boolean,
     setShow: (show: boolean) => void,
-    cardActions: ICardActions
+    cardActions: ICardActions,
+    currentTime: number
 }
 
-export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDetailProps) => {
+export const TaskDetailModal = ({ taskData, show, setShow, cardActions, currentTime }: TaskDetailProps) => {
     const [comments, setComments] = useState<CommentRead[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [editingTask, setEditingTask] = useState(false);
@@ -48,8 +47,19 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
 
     const handleSubmitTaskEdit = (e: FormEvent) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        const taskUpdateData: TaskUpdate = {
+            assigneeEmail: formData.get("assigneeEmail") as string,
+            description: formData.get("description") as string,
+            id: taskData.id,
+            title: formData.get("title") as string,
+            type: formData.get("type") as string as TaskType,
+            estimatedTime: formData.get("estimatedTime") as string
+        }
 
-        setEditingTask(false);
+        cardActions.updateTask(taskUpdateData).then(success => {
+            setEditingTask(false)
+        })
     }
 
     const handleCancelEditTask = () => {
@@ -85,8 +95,6 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
     };
 
     const taskDetailContent = () => {
-        // const titleElement = editingTask ? () : (<div className="col-sm-10 pt-2">{taskData.title}</div>);
-
         const titleElement = editingTask ?
             (<Form.Control autoFocus={true} type="text" name="title" required={true} defaultValue={taskData.title}></Form.Control>) :
             (<div>{taskData.title}</div>);
@@ -106,9 +114,13 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
             (<div>{taskData.assignee?.name}</div>);
 
         const estimateElement = editingTask ?
-            (<Form.Control type="text" name="estimatedTime" defaultValue={taskData.timing.estimate == undefined ? "" : (taskData.timing.estimate! / 60.0).toFixed(0) + 'm'}></Form.Control>) :
-            (<div>{formatHrDuration(taskData.timing.estimate)}</div>);
-        
+            (<Form.Control type="text" name="estimatedTime" defaultValue={formatReadibleDuration(taskData.timing.estimate)}></Form.Control>) :
+            (<div>{formatReadibleDuration(taskData.timing.estimate)}</div>);
+
+        const buttons = editingTask ?
+            (<><Button className="btn-light" onClick={handleCancelEditTask}>Cancel</Button>
+               <Button type="submit" className="btn-success">Save</Button></>) :  
+            (<Button onClick={(e) => {e.preventDefault(); setEditingTask(true);}} className="btn-primary">Edit</Button>)
 
         return (<div>
             <Form className="mb-3" onSubmit={handleSubmitTaskEdit}>
@@ -138,7 +150,7 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
                 <Form.Row>
                     <Form.Group className="col-md-6" controlId="loggedTime">
                         <Form.Label>Logged Time</Form.Label>
-                        <div>{formatHMSDuration(taskData.timing.current)}</div>
+                        <div>{formatHMSDuration(currentTime)}</div>
                     </Form.Group>
 
                     <Form.Group className="col-md-6" controlId="estimatedTime">
@@ -146,11 +158,10 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
                         {estimateElement}
                     </Form.Group>
                 </Form.Row>
-                {() => editingTask ? 
-                    (<ButtonGroup>
-                        <Button className="btn btn-light" onClick={handleCancelEditTask}>Cancel</Button>
-                        <Button type="submit" className="btn btn-success">Save</Button>
-                    </ButtonGroup>) : ""}
+
+                <ButtonGroup>
+                    {buttons}
+                </ButtonGroup>
                 
             </Form>
 
@@ -168,7 +179,6 @@ export const TaskDetailModal = ({ taskData, show, setShow, cardActions }: TaskDe
             <Modal.Header closeButton={true} onClick={() => setShow(false)}>
                 <div className="d-flex justify-content-between">
                     <Modal.Title>Task Details: {taskData.identifier}</Modal.Title>
-                    <button disabled={editingTask} onClick={(e) => {e.preventDefault(); setEditingTask(true);}} className="btn btn-light ml-3"><PencilSquare/></button>
                 </div>
             </Modal.Header>
 

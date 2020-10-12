@@ -122,15 +122,28 @@ func handleGetProject(c *gin.Context) {
 		})
 	}
 
+	associationDatas := make([]data.ProjectAssociation, 0)
+	for _, a := range association.R.Project.R.ProjectAssociations {
+		association := data.ProjectAssociation{
+			User: data.UserRead{
+				ID:    a.R.User.ID,
+				Email: a.R.User.Email,
+				Name:  a.R.User.Name,
+			},
+			Type: a.Association,
+		}
+		associationDatas = append(associationDatas, association)
+	}
+
 	projData := data.ProjectDetail{
-		AssociationType: association.Association,
-		ID:              association.R.Project.ID,
-		Abbreviation:    association.R.Project.Abbreviation,
-		Description:     association.R.Project.Description,
-		Name:            association.R.Project.Name,
-		Statuses:        statusDatas,
-		Tasks:           taskDatas,
-		WorkingTaskID:   workingTaskID,
+		ID:            association.R.Project.ID,
+		Abbreviation:  association.R.Project.Abbreviation,
+		Description:   association.R.Project.Description,
+		Name:          association.R.Project.Name,
+		Statuses:      statusDatas,
+		Tasks:         taskDatas,
+		WorkingTaskID: workingTaskID,
+		Associations:  associationDatas,
 	}
 
 	c.JSON(http.StatusOK, projData)

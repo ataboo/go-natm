@@ -41,6 +41,7 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 		qm.Load("Project.TaskStatuses.Tasks"),
 		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
 		qm.Load("Project.TaskStatuses.Tasks.Assignee"),
+		qm.Load("Project.ProjectAssociations.User"),
 	).One(r.ctx, r.db)
 }
 

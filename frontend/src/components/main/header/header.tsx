@@ -2,6 +2,7 @@ import React from "react";
 import "./header.scss";
 import { AuthContext } from "../../../context/auth";
 import { UserPanel } from "./userpanel";
+import { Nav, Navbar } from "react-bootstrap";
 
 export function Header() { 
     const signInButton = () => {
@@ -15,13 +16,13 @@ export function Header() {
             {context => {
                 const hasUser = context.currentUser !== null;
      
-                return (
-                <nav className="navbar navbar-expand-lg navbar-light bg-light">
-                    <a className="navbar-brand" href="/">Go NATM</a>
-                    <ul className="navbar-nav mr-auto"></ul>
-                    {(hasUser ? <UserPanel/> : signInButton())}
-                </nav>
-            )
+                return (<Navbar variant="light">
+                            <Nav className="mr-auto">
+                                <Navbar.Brand href="/">Go NATM</Navbar.Brand>
+                                <Nav.Link href="/">Projects</Nav.Link>
+                            </Nav>
+                            {(hasUser ? <UserPanel/> : signInButton())}
+                        </Navbar>)
             }}
                 
         </AuthContext.Consumer>

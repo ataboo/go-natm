@@ -14,7 +14,7 @@ export function Routes({currentUser}: RouteProps) {
         <Router>
             <Switch>
                 <Route exact path="/">
-                    <ProjectList />
+                    <ProjectList currentUser={currentUser}/>
                 </Route>
                 <Route exact path="/project/:id" render={(props) => {
                     return (<Project id={props.match.params.id} currentUser={currentUser}/>)

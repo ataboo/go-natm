@@ -1,6 +1,6 @@
 import { CommentCreate, CommentRead, CommentUpdate } from "../../../../models/comment";
 import { StatusCreate, StatusRead } from "../../../../models/status";
-import { TaskCreate, TaskRead, TaskUpdate } from "../../../../models/task";
+import { TaskCreate, TaskUpdate } from "../../../../models/task";
 import { User } from "../../../../models/user";
 
 export interface ICardActions {

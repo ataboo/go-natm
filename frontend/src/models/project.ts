@@ -1,11 +1,13 @@
 import { TaskRead } from "./task";
 import { StatusRead } from "./status";
+import { User } from "./user";
 
 export interface ProjectDetails extends ProjectCreate {
     id: string;
     tasks: TaskRead[];
     statuses: StatusRead[];
     workingTaskID?: string;
+    associations: ProjectAssociation[];
 }
 
 export interface ProjectCreate {
@@ -18,7 +20,7 @@ export interface ProjectGrid {
     id: string;
     name: string;
     abbreviation: string;
-    associationType: ProjectAssociation,
+    associationType: AssociationType,
     lastUpdated: number
 }
 
@@ -33,6 +35,11 @@ export interface TaskOrder {
     ordinal: number
 }
 
+export interface ProjectAssociation {
+    user: User,
+    type: AssociationType,
+}
+
 export const cloneProject = (oldProject: ProjectDetails) => {
     return {
         id: oldProject.id,
@@ -40,11 +47,12 @@ export const cloneProject = (oldProject: ProjectDetails) => {
         abbreviation: oldProject.abbreviation,
         description: oldProject.description,
         tasks: [...oldProject.tasks],
-        statuses: [...oldProject.statuses]
+        statuses: [...oldProject.statuses],
+        associations: [...oldProject.associations]
     }
 }
 
-export enum ProjectAssociation {
+export enum AssociationType {
     Owner,
     Writer,
     Reader

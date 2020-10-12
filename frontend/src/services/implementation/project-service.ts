@@ -158,17 +158,6 @@ export default class ProjectService implements IProjectService {
         return response.status === 200;
     }
 
-    emptyProject(): ProjectDetails {
-        return {
-            id: "",
-            name: "",
-            statuses: [],
-            tasks: [],
-            abbreviation: "",
-            description: "",
-        };
-    }
-
     async saveTaskOrder(taskOrder: ProjectTaskOrder): Promise<boolean> {
         var response = await this.client.post(`${this.hostUri}projects/setTaskOrder`, JSON.stringify(taskOrder));
 
