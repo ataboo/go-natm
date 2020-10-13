@@ -16,15 +16,24 @@ var ctx context.Context
 var projectRepo *storage.ProjectRepository
 var statusRepo *storage.StatusRepository
 var taskRepo *storage.TaskRepository
+var projectAssociationRepo *storage.ProjectAssociationRepository
 
-func RegisterRoutes(e *gin.RouterGroup, pr *storage.ProjectRepository, sr *storage.StatusRepository, tr *storage.TaskRepository) {
+func RegisterRoutes(
+	e *gin.RouterGroup,
+	pr *storage.ProjectRepository,
+	sr *storage.StatusRepository,
+	tr *storage.TaskRepository,
+	par *storage.ProjectAssociationRepository,
+) {
 	projectRepo = pr
 	statusRepo = sr
 	taskRepo = tr
+	projectAssociationRepo = par
 
 	registerProjectRoutes(e)
 	registerStatusRoutes(e)
 	registerTaskRoutes(e)
+	registerProjectAssociationRoutes(e)
 }
 
 func handleErrorWithStatus(err error, c *gin.Context) {

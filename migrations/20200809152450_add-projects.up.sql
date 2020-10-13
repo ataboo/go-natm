@@ -39,7 +39,7 @@ CREATE TABLE tasks (
 CREATE TABLE project_associations (
    id UUID PRIMARY KEY,
    project_id UUID NOT NULL REFERENCES projects(id),
-   user_id UUID NOT NULL REFERENCES users(id),
+   email VARCHAR(64) NOT NULL,
    association associations_enum NOT NULL
 );
 

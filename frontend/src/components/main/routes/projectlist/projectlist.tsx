@@ -3,12 +3,13 @@ import "./projectlist.scss";
 import { Link } from "react-router-dom";
 import { ProjectGrid } from "../../../../models/project";
 import { ModalForm } from "../../modalform";
-import { Form, Container, Table, Card } from "react-bootstrap";
+import { Form, Container, Table, Card, Row, Col, Button } from "react-bootstrap";
 import { Share, Trash } from "react-bootstrap-icons";
 import { DateTime } from "luxon";
 import ProjectService from "../../../../services/implementation/project-service";
 import { ProjectShare } from "./projectshare";
 import { User } from "../../../../models/user";
+import { IProjectService } from "../../../../services/interface/iproject-service";
 
 type ProjectListProps = {
     currentUser: User
@@ -20,7 +21,7 @@ export const ProjectList = ({currentUser}: ProjectListProps) => {
     const [showCreate, setShowCreate] = useState(false)
     const [sharingProjectGridData, setSharingProjectGridData] = useState<ProjectGrid | undefined>(undefined);
     const nameInput = useRef(null);
-    const projectService = new ProjectService()
+    const projectService: IProjectService = new ProjectService()
 
     const renderProjects = (projects: ProjectGrid[]) => {
         if (projects.length === 0) {
@@ -113,18 +114,19 @@ export const ProjectList = ({currentUser}: ProjectListProps) => {
                 setLoading(false);
             });
         }
-    }, [ projectService ]);
+    }, [ projectService, loading ]);
 
     if (loading) {
         return (<div>Loading...</div>);
     }
     
     return (<Container>
+        <Row>
+            <Col className='mb-3'>Start a new project or share manage an existing one.</Col>
+        </Row>
         <Card>
+            <Card.Header>Go NATM Projects</Card.Header>
             <Card.Body>
-                <Card.Title>Projects<button className="btn btn-outline-primary btn-sm mr-3 float-right" onClick={() => setShowCreate(true)}>Create New</button>
-            </Card.Title>
-                
             {renderProjects(projects)}
             <ModalForm
                 focusElement={nameInput}
@@ -142,8 +144,12 @@ export const ProjectList = ({currentUser}: ProjectListProps) => {
                 projectGridData={sharingProjectGridData}
                 showShare={true}
                 onClose={() => setSharingProjectGridData(undefined)}
+                createProjectAssociation={async data => await projectService.createProjectAssociation(data)}
+                deleteProjectAssociation={async data => await projectService.deleteProjectAssociation(data)}
+                updateProjectAssociation={async data => await projectService.updateProjectAssociation(data)}
             />) : ""}
             </Card.Body>
+            <Card.Footer><Button className="btn-primary" onClick={() => setShowCreate(true)}>New Project</Button></Card.Footer>
         </Card>
     </Container>)
 };

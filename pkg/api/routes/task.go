@@ -9,7 +9,7 @@ import (
 )
 
 func registerTaskRoutes(e *gin.RouterGroup) {
-	g := e.Group("/tasks")
+	g := e.Group("/task")
 
 	g.GET("/:taskID", handleGetTask)
 	g.POST("/create", handleCreateTask)

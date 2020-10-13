@@ -14,19 +14,14 @@ type ProjectGrid struct {
 }
 
 type ProjectDetail struct {
-	ID            string               `json:"id"`
-	Name          string               `json:"name"`
-	Abbreviation  string               `json:"abbreviation"`
-	Description   string               `json:"description"`
-	Statuses      []StatusRead         `json:"statuses"`
-	Tasks         []TaskGrid           `json:"tasks"`
-	WorkingTaskID null.String          `json:"workingTaskID"`
-	Associations  []ProjectAssociation `json:"associations"`
-}
-
-type ProjectAssociation struct {
-	User UserRead `json:"user"`
-	Type string   `json:"type"`
+	ID            string                     `json:"id"`
+	Name          string                     `json:"name"`
+	Abbreviation  string                     `json:"abbreviation"`
+	Description   string                     `json:"description"`
+	Statuses      []StatusRead               `json:"statuses"`
+	Tasks         []TaskGrid                 `json:"tasks"`
+	WorkingTaskID null.String                `json:"workingTaskID"`
+	Associations  []ProjectAssociationDetail `json:"associations"`
 }
 
 type ProjectCreate struct {

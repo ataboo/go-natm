@@ -8,4 +8,5 @@ host = "localhost"
 port = 5432
 user = ""
 pass = ""
-blacklist = ["migrations"]
+sslmode = false
+blacklist = ["schema_migrations"]

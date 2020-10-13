@@ -144,7 +144,6 @@ func TestToOne(t *testing.T) {
 	t.Run("CommentToTaskUsingTask", testCommentToOneTaskUsingTask)
 	t.Run("CommentToUserUsingUser", testCommentToOneUserUsingUser)
 	t.Run("ProjectAssociationToProjectUsingProject", testProjectAssociationToOneProjectUsingProject)
-	t.Run("ProjectAssociationToUserUsingUser", testProjectAssociationToOneUserUsingUser)
 	t.Run("TaskStatusToProjectUsingProject", testTaskStatusToOneProjectUsingProject)
 	t.Run("TaskToUserUsingAssignee", testTaskToOneUserUsingAssignee)
 	t.Run("TaskToTaskStatusUsingTaskStatus", testTaskToOneTaskStatusUsingTaskStatus)
@@ -165,7 +164,6 @@ func TestToMany(t *testing.T) {
 	t.Run("TaskToComments", testTaskToManyComments)
 	t.Run("TaskToWorkLogs", testTaskToManyWorkLogs)
 	t.Run("UserToComments", testUserToManyComments)
-	t.Run("UserToProjectAssociations", testUserToManyProjectAssociations)
 	t.Run("UserToAssigneeTasks", testUserToManyAssigneeTasks)
 	t.Run("UserToWorkLogs", testUserToManyWorkLogs)
 }
@@ -176,7 +174,6 @@ func TestToOneSet(t *testing.T) {
 	t.Run("CommentToTaskUsingComments", testCommentToOneSetOpTaskUsingTask)
 	t.Run("CommentToUserUsingComments", testCommentToOneSetOpUserUsingUser)
 	t.Run("ProjectAssociationToProjectUsingProjectAssociations", testProjectAssociationToOneSetOpProjectUsingProject)
-	t.Run("ProjectAssociationToUserUsingProjectAssociations", testProjectAssociationToOneSetOpUserUsingUser)
 	t.Run("TaskStatusToProjectUsingTaskStatuses", testTaskStatusToOneSetOpProjectUsingProject)
 	t.Run("TaskToUserUsingAssigneeTasks", testTaskToOneSetOpUserUsingAssignee)
 	t.Run("TaskToTaskStatusUsingTasks", testTaskToOneSetOpTaskStatusUsingTaskStatus)
@@ -207,7 +204,6 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("TaskToComments", testTaskToManyAddOpComments)
 	t.Run("TaskToWorkLogs", testTaskToManyAddOpWorkLogs)
 	t.Run("UserToComments", testUserToManyAddOpComments)
-	t.Run("UserToProjectAssociations", testUserToManyAddOpProjectAssociations)
 	t.Run("UserToAssigneeTasks", testUserToManyAddOpAssigneeTasks)
 	t.Run("UserToWorkLogs", testUserToManyAddOpWorkLogs)
 }

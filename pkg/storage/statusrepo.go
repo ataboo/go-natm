@@ -28,10 +28,15 @@ func NewStatusRepository(db *sql.DB) *StatusRepository {
 }
 
 func (r *StatusRepository) Archive(statusID string, userID string) error {
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	status, err := models.TaskStatuses(
 		qm.Load("Tasks"),
 		qm.LeftOuterJoin("project_associations pa ON pa.project_id = task_statuses.project_id"),
-		qm.Where("pa.user_id = ? AND task_statuses.id = ?", userID, statusID),
+		qm.Where("pa.email = ? AND task_statuses.id = ?", actingUser.Email, statusID),
 	).One(r.ctx, r.db)
 	if err != nil {
 		return &common.ErrorWithStatus{Code: http.StatusNotFound}
@@ -71,9 +76,14 @@ func (r *StatusRepository) Archive(statusID string, userID string) error {
 }
 
 func (r *StatusRepository) StepOrdinal(statusID string, userID string, step int) error {
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	status, err := models.TaskStatuses(
 		qm.LeftOuterJoin("project_associations pa ON pa.project_id = task_statuses.project_id"),
-		qm.Where("pa.user_id = ? AND task_statuses.id = ?", userID, statusID),
+		qm.Where("pa.email = ? AND task_statuses.id = ?", actingUser.Email, statusID),
 	).One(r.ctx, r.db)
 	if err != nil {
 		return &common.ErrorWithStatus{

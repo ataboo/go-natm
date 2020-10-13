@@ -11,7 +11,7 @@ import (
 )
 
 func registerProjectRoutes(e *gin.RouterGroup) {
-	g := e.Group("/projects")
+	g := e.Group("/project/")
 
 	g.GET("/", handleGetProjects)
 	g.GET("/:projectID", handleGetProject)
@@ -122,15 +122,12 @@ func handleGetProject(c *gin.Context) {
 		})
 	}
 
-	associationDatas := make([]data.ProjectAssociation, 0)
+	associationDatas := make([]data.ProjectAssociationDetail, 0)
 	for _, a := range association.R.Project.R.ProjectAssociations {
-		association := data.ProjectAssociation{
-			User: data.UserRead{
-				ID:    a.R.User.ID,
-				Email: a.R.User.Email,
-				Name:  a.R.User.Name,
-			},
-			Type: a.Association,
+		association := data.ProjectAssociationDetail{
+			ID:    a.ID,
+			Email: a.Email,
+			Type:  a.Association,
 		}
 		associationDatas = append(associationDatas, association)
 	}
@@ -161,7 +158,7 @@ func handleCreateProject(c *gin.Context) {
 
 	err = projectRepo.Create(&createData, userID)
 	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		handleErrorWithStatus(err, c)
 		return
 	}
 

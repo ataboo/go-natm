@@ -25,7 +25,7 @@ import (
 type ProjectAssociation struct {
 	ID          string `boil:"id" json:"id" toml:"id" yaml:"id"`
 	ProjectID   string `boil:"project_id" json:"project_id" toml:"project_id" yaml:"project_id"`
-	UserID      string `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	Email       string `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Association string `boil:"association" json:"association" toml:"association" yaml:"association"`
 
 	R *projectAssociationR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -35,12 +35,12 @@ type ProjectAssociation struct {
 var ProjectAssociationColumns = struct {
 	ID          string
 	ProjectID   string
-	UserID      string
+	Email       string
 	Association string
 }{
 	ID:          "id",
 	ProjectID:   "project_id",
-	UserID:      "user_id",
+	Email:       "email",
 	Association: "association",
 }
 
@@ -49,28 +49,25 @@ var ProjectAssociationColumns = struct {
 var ProjectAssociationWhere = struct {
 	ID          whereHelperstring
 	ProjectID   whereHelperstring
-	UserID      whereHelperstring
+	Email       whereHelperstring
 	Association whereHelperstring
 }{
 	ID:          whereHelperstring{field: "\"project_associations\".\"id\""},
 	ProjectID:   whereHelperstring{field: "\"project_associations\".\"project_id\""},
-	UserID:      whereHelperstring{field: "\"project_associations\".\"user_id\""},
+	Email:       whereHelperstring{field: "\"project_associations\".\"email\""},
 	Association: whereHelperstring{field: "\"project_associations\".\"association\""},
 }
 
 // ProjectAssociationRels is where relationship names are stored.
 var ProjectAssociationRels = struct {
 	Project string
-	User    string
 }{
 	Project: "Project",
-	User:    "User",
 }
 
 // projectAssociationR is where relationships are stored.
 type projectAssociationR struct {
 	Project *Project `boil:"Project" json:"Project" toml:"Project" yaml:"Project"`
-	User    *User    `boil:"User" json:"User" toml:"User" yaml:"User"`
 }
 
 // NewStruct creates a new relationship struct
@@ -82,8 +79,8 @@ func (*projectAssociationR) NewStruct() *projectAssociationR {
 type projectAssociationL struct{}
 
 var (
-	projectAssociationAllColumns            = []string{"id", "project_id", "user_id", "association"}
-	projectAssociationColumnsWithoutDefault = []string{"id", "project_id", "user_id", "association"}
+	projectAssociationAllColumns            = []string{"id", "project_id", "email", "association"}
+	projectAssociationColumnsWithoutDefault = []string{"id", "project_id", "email", "association"}
 	projectAssociationColumnsWithDefault    = []string{}
 	projectAssociationPrimaryKeyColumns     = []string{"id"}
 )
@@ -377,20 +374,6 @@ func (o *ProjectAssociation) Project(mods ...qm.QueryMod) projectQuery {
 	return query
 }
 
-// User pointed to by the foreign key.
-func (o *ProjectAssociation) User(mods ...qm.QueryMod) userQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.UserID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Users(queryMods...)
-	queries.SetFrom(query.Query, "\"users\"")
-
-	return query
-}
-
 // LoadProject allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
 func (projectAssociationL) LoadProject(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectAssociation interface{}, mods queries.Applicator) error {
@@ -495,110 +478,6 @@ func (projectAssociationL) LoadProject(ctx context.Context, e boil.ContextExecut
 	return nil
 }
 
-// LoadUser allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (projectAssociationL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeProjectAssociation interface{}, mods queries.Applicator) error {
-	var slice []*ProjectAssociation
-	var object *ProjectAssociation
-
-	if singular {
-		object = maybeProjectAssociation.(*ProjectAssociation)
-	} else {
-		slice = *maybeProjectAssociation.(*[]*ProjectAssociation)
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &projectAssociationR{}
-		}
-		args = append(args, object.UserID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &projectAssociationR{}
-			}
-
-			for _, a := range args {
-				if a == obj.UserID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.UserID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`users`),
-		qm.WhereIn(`users.id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load User")
-	}
-
-	var resultSlice []*User
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice User")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for users")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
-	}
-
-	if len(projectAssociationAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.User = foreign
-		if foreign.R == nil {
-			foreign.R = &userR{}
-		}
-		foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.UserID == foreign.ID {
-				local.R.User = foreign
-				if foreign.R == nil {
-					foreign.R = &userR{}
-				}
-				foreign.R.ProjectAssociations = append(foreign.R.ProjectAssociations, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // SetProject of the projectAssociation to the related item.
 // Sets o.R.Project to related.
 // Adds o to related.R.ProjectAssociations.
@@ -637,53 +516,6 @@ func (o *ProjectAssociation) SetProject(ctx context.Context, exec boil.ContextEx
 
 	if related.R == nil {
 		related.R = &projectR{
-			ProjectAssociations: ProjectAssociationSlice{o},
-		}
-	} else {
-		related.R.ProjectAssociations = append(related.R.ProjectAssociations, o)
-	}
-
-	return nil
-}
-
-// SetUser of the projectAssociation to the related item.
-// Sets o.R.User to related.
-// Adds o to related.R.ProjectAssociations.
-func (o *ProjectAssociation) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"project_associations\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
-		strmangle.WhereClause("\"", "\"", 2, projectAssociationPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.UserID = related.ID
-	if o.R == nil {
-		o.R = &projectAssociationR{
-			User: related,
-		}
-	} else {
-		o.R.User = related
-	}
-
-	if related.R == nil {
-		related.R = &userR{
 			ProjectAssociations: ProjectAssociationSlice{o},
 		}
 	} else {

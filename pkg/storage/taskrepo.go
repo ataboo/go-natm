@@ -49,10 +49,15 @@ func (r *TaskRepository) List(projectID string) (models.TaskSlice, error) {
 }
 
 func (r *TaskRepository) Find(taskID string, userID string) (*models.Task, error) {
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	return models.Tasks(
 		qm.LeftOuterJoin("task_statuses s ON s.id = tasks.task_status_id"),
 		qm.LeftOuterJoin("project_associations pa ON pa.project_id = s.project_id"),
-		qm.Where("tasks.id = ? AND pa.user_id = ?", taskID, userID),
+		qm.Where("tasks.id = ? AND pa.email = ?", actingUser.Email, userID),
 	).One(r.ctx, r.db)
 }
 
@@ -214,9 +219,9 @@ func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCr
 		return nil, &common.ErrorWithStatus{Code: http.StatusNotFound}
 	}
 
-	user, err := models.FindUser(r.ctx, r.db, userID)
-	if user == nil || err != nil {
-		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
 	comment := models.Comment{
@@ -233,9 +238,9 @@ func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCr
 
 	commentVM := &data.CommentRead{
 		Author: &data.UserRead{
-			Email: user.Email,
-			ID:    user.ID,
-			Name:  user.Name,
+			Email: actingUser.Email,
+			ID:    actingUser.ID,
+			Name:  actingUser.Name,
 		},
 		ID:        comment.ID,
 		Message:   commentCreate.Message,

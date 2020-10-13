@@ -3,3 +3,9 @@ export enum TaskType {
     Problem = "Problem",
     Admin = "Admin"
 }
+
+export enum AssociationType {
+    Owner = "Owner",
+    Writer = "Writer",
+    Reader = "Reader"
+};

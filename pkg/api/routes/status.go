@@ -8,7 +8,7 @@ import (
 )
 
 func registerStatusRoutes(e *gin.RouterGroup) {
-	g := e.Group("/statuses")
+	g := e.Group("/status")
 
 	g.POST("/", handleCreateStatus)
 	g.POST("/archive", handleArchiveStatus)

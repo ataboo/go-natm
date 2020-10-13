@@ -545,57 +545,6 @@ func testProjectAssociationToOneProjectUsingProject(t *testing.T) {
 	}
 }
 
-func testProjectAssociationToOneUserUsingUser(t *testing.T) {
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var local ProjectAssociation
-	var foreign User
-
-	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, projectAssociationDBTypes, false, projectAssociationColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize ProjectAssociation struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize User struct: %s", err)
-	}
-
-	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	local.UserID = foreign.ID
-	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.User().One(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := ProjectAssociationSlice{&local}
-	if err = local.L.LoadUser(ctx, tx, false, (*[]*ProjectAssociation)(&slice), nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.User == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.User = nil
-	if err = local.L.LoadUser(ctx, tx, true, &local, nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.User == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testProjectAssociationToOneSetOpProjectUsingProject(t *testing.T) {
 	var err error
 
@@ -650,63 +599,6 @@ func testProjectAssociationToOneSetOpProjectUsingProject(t *testing.T) {
 
 		if a.ProjectID != x.ID {
 			t.Error("foreign key was wrong value", a.ProjectID, x.ID)
-		}
-	}
-}
-func testProjectAssociationToOneSetOpUserUsingUser(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a ProjectAssociation
-	var b, c User
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, projectAssociationDBTypes, false, strmangle.SetComplement(projectAssociationPrimaryKeyColumns, projectAssociationColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*User{&b, &c} {
-		err = a.SetUser(ctx, tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.User != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.ProjectAssociations[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.UserID != x.ID {
-			t.Error("foreign key was wrong value", a.UserID)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.UserID))
-		reflect.Indirect(reflect.ValueOf(&a.UserID)).Set(zero)
-
-		if err = a.Reload(ctx, tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.UserID != x.ID {
-			t.Error("foreign key was wrong value", a.UserID, x.ID)
 		}
 	}
 }
@@ -785,7 +677,7 @@ func testProjectAssociationsSelect(t *testing.T) {
 }
 
 var (
-	projectAssociationDBTypes = map[string]string{`ID`: `uuid`, `ProjectID`: `uuid`, `UserID`: `uuid`, `Association`: `enum.associations_enum('Owner','Writer','Reader')`}
+	projectAssociationDBTypes = map[string]string{`ID`: `uuid`, `ProjectID`: `uuid`, `Email`: `character varying`, `Association`: `enum.associations_enum('Owner','Writer','Reader')`}
 	_                         = bytes.MinRead
 )
 

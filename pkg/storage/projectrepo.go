@@ -26,8 +26,13 @@ func NewProjectRepository(db *sql.DB) *ProjectRepository {
 }
 
 func (r *ProjectRepository) ListAssociated(userID string) (models.ProjectAssociationSlice, error) {
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return models.ProjectAssociationSlice{}, &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	qms := []qm.QueryMod{
-		qm.Where("user_id = ?", userID),
+		qm.Where("email = ?", actingUser.Email),
 		qm.Load("Project"),
 	}
 
@@ -35,17 +40,27 @@ func (r *ProjectRepository) ListAssociated(userID string) (models.ProjectAssocia
 }
 
 func (r *ProjectRepository) Find(projectID string, userID string) (*models.ProjectAssociation, error) {
+	actingUser, err := models.FindUser(r.ctx, r.db, userID)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	return models.ProjectAssociations(
-		qm.Where("user_id = ? AND project_id = ?", userID, projectID),
+		qm.Where("email = ? AND project_id = ?", actingUser.Email, projectID),
 		qm.Load("Project"),
 		qm.Load("Project.TaskStatuses.Tasks"),
 		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
 		qm.Load("Project.TaskStatuses.Tasks.Assignee"),
-		qm.Load("Project.ProjectAssociations.User"),
+		qm.Load("Project.ProjectAssociations"),
 	).One(r.ctx, r.db)
 }
 
-func (r *ProjectRepository) Create(projectData *data.ProjectCreate, ownerID string) error {
+func (r *ProjectRepository) Create(projectData *data.ProjectCreate, actingUserId string) error {
+	actingUser, err := models.FindUser(r.ctx, r.db, actingUserId)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
 	proj := models.Project{
 		ID:           uuid.New().String(),
 		Abbreviation: projectData.Abbreviation,
@@ -58,12 +73,12 @@ func (r *ProjectRepository) Create(projectData *data.ProjectCreate, ownerID stri
 		ID:          uuid.New().String(),
 		Association: models.AssociationsEnumOwner,
 		ProjectID:   proj.ID,
-		UserID:      ownerID,
+		Email:       actingUser.Email,
 	}
 
-	err := proj.Insert(r.ctx, r.db, boil.Infer())
+	err = proj.Insert(r.ctx, r.db, boil.Infer())
 	if err != nil {
-		return err
+		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
 	}
 
 	return projAssociation.Insert(r.ctx, r.db, boil.Infer())

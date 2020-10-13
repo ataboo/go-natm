@@ -57,6 +57,7 @@ func main() {
 		projectRepo *storage.ProjectRepository,
 		taskRepo *storage.TaskRepository,
 		statusRepo *storage.StatusRepository,
+		projectAssociationRepo *storage.ProjectAssociationRepository,
 	) {
 		defer db.Close()
 		err := database.MigrateDB(db)
@@ -101,7 +102,7 @@ func main() {
 				c.Status(http.StatusOK)
 			})
 
-			routes.RegisterRoutes(api, projectRepo, statusRepo, taskRepo)
+			routes.RegisterRoutes(api, projectRepo, statusRepo, taskRepo, projectAssociationRepo)
 		}
 		if err != nil {
 			log.Fatal(err)
@@ -114,6 +115,9 @@ func main() {
 
 		router.Run("localhost:8080")
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func buildContainer() *dig.Container {
@@ -125,6 +129,7 @@ func buildContainer() *dig.Container {
 	container.Provide(storage.NewProjectRepository)
 	container.Provide(storage.NewStatusRepository)
 	container.Provide(storage.NewTaskRepository)
+	container.Provide(storage.NewProjectAssociationRepository)
 	container.Provide(oauth.LoadJWTConfig)
 	container.Provide(oauth.NewGooglOAuthHandler)
 	container.Provide(oauth.NewJWTRouteService)

@@ -1,13 +1,14 @@
 import { TaskRead } from "./task";
 import { StatusRead } from "./status";
-import { User } from "./user";
+import { AssociationType } from "../enums";
+import { ProjectAssociationDetail } from "./projectassociation";
 
 export interface ProjectDetails extends ProjectCreate {
     id: string;
     tasks: TaskRead[];
     statuses: StatusRead[];
     workingTaskID?: string;
-    associations: ProjectAssociation[];
+    associations: ProjectAssociationDetail[];
 }
 
 export interface ProjectCreate {
@@ -35,11 +36,6 @@ export interface TaskOrder {
     ordinal: number
 }
 
-export interface ProjectAssociation {
-    user: User,
-    type: AssociationType,
-}
-
 export const cloneProject = (oldProject: ProjectDetails) => {
     return {
         id: oldProject.id,
@@ -51,9 +47,3 @@ export const cloneProject = (oldProject: ProjectDetails) => {
         associations: [...oldProject.associations]
     }
 }
-
-export enum AssociationType {
-    Owner,
-    Writer,
-    Reader
-};

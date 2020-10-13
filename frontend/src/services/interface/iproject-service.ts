@@ -1,5 +1,6 @@
 import { CommentCreate, CommentRead, CommentUpdate } from "../../models/comment";
 import { ProjectDetails, ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
+import { ProjectAssociationCreate, ProjectAssociationDelete, ProjectAssociationDetail, ProjectAssociationUpdate } from "../../models/projectassociation";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";
 
@@ -28,15 +29,21 @@ export interface IProjectService {
 
     archiveStatus(statusID: string): Promise<boolean>;
     
-    updateTask(updateData: TaskUpdate): Promise<boolean>
+    updateTask(updateData: TaskUpdate): Promise<boolean>;
 
-    saveTaskOrder(taskOrderData: ProjectTaskOrder): Promise<boolean>
+    saveTaskOrder(taskOrderData: ProjectTaskOrder): Promise<boolean>;
 
-    stepStatusOrdinal(statusID: string, step: number): Promise<boolean>
+    stepStatusOrdinal(statusID: string, step: number): Promise<boolean>;
 
-    getComments(statusID: string): Promise<CommentRead[]>
+    getComments(statusID: string): Promise<CommentRead[]>;
 
-    addComment(createData: CommentCreate): Promise<CommentRead>
+    addComment(createData: CommentCreate): Promise<CommentRead>;
 
-    updateComment(data: CommentUpdate): Promise<CommentRead>
+    updateComment(data: CommentUpdate): Promise<CommentRead>;
+
+    updateProjectAssociation(data: ProjectAssociationUpdate): Promise<boolean>;
+    
+    deleteProjectAssociation(data: ProjectAssociationDelete): Promise<boolean>;
+
+    createProjectAssociation(data: ProjectAssociationCreate): Promise<boolean>;
 }
