@@ -2,13 +2,12 @@ import React from 'react';
 import './column.scss';
 import { Card } from './card';
 import { DropZone } from './drop-zone';
-import { TaskRead, TaskCreate } from '../../../../../models/task';
+import { TaskRead } from '../../../../../models/task';
 import { StatusRead } from '../../../../../models/status';
 import { ICardActions } from '../icardactions';
 import { Dropdown } from 'react-bootstrap';
 import { ThreeDotsVertical } from 'react-bootstrap-icons';
 import { AddTask } from './addtask';
-import DropdownItem from 'react-bootstrap/esm/DropdownItem';
 
 type ColumnProps = {
     tasks: TaskRead[],

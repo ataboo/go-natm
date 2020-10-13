@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import React, { FormEvent, useState } from 'react';
 import { Button, ButtonGroup, Card, Form } from 'react-bootstrap';
-import { CheckSquare, PencilSquare, Trash, XSquare } from 'react-bootstrap-icons';
+import { PencilSquare, Trash } from 'react-bootstrap-icons';
 import { CommentRead, CommentUpdate } from '../../../../../../../models/comment';
 import { User } from '../../../../../../../models/user';
 

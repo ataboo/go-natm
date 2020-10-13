@@ -1,6 +1,6 @@
-import React, { createRef, MouseEvent, RefObject, useCallback, useEffect, useState } from 'react';
+import React, { createRef, RefObject, useEffect, useState } from 'react';
 import { Button, ButtonGroup, Col, Form, Modal, Row } from 'react-bootstrap';
-import { Check, CheckSquare, PencilSquare, TrashFill, X, XSquare } from 'react-bootstrap-icons';
+import { Check, Pencil, Trash, X } from 'react-bootstrap-icons';
 import { AssociationType } from '../../../../../enums';
 import { ProjectDetails, ProjectGrid } from '../../../../../models/project';
 import { ProjectAssociationCreate, ProjectAssociationDelete, ProjectAssociationDetail, ProjectAssociationUpdate } from '../../../../../models/projectassociation';
@@ -26,6 +26,7 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
     const [projectData, setProjectData] = useState<ProjectDetails | undefined>(undefined);
     const associationTypeOptions = Object.keys(AssociationType).filter(k => k !== AssociationType.Owner).map(k => <option value={k} key={k}>{k}</option>);
     const [associationMap, setAssociationMap] = useState(new Map<string, AssociationMapEntry>());
+    const [newShareEmailError, setNewShareError] = useState<string | undefined>(undefined);
 
     const updateEntryEditing = (id: string, editing: boolean) => {
         const entry = associationMap.get(id)!;
@@ -38,10 +39,6 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
         entry.formRef = ref;
         setAssociationMap(new Map(associationMap.set(id, entry)));
     }
-
-    // const loadAndInitialize = useCallback(() => {
-        
-    // }, [projectGridData, setProjectData, setAssociationMap, setLoading, loading]);
 
     useEffect(() => {
         (async () => {
@@ -57,7 +54,7 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
 
             setAssociationMap(newAssocMap);
         })();            
-    }, [setAssociationMap, setProjectData]);
+    }, [setAssociationMap, setProjectData, loadProjectDetail, projectGridData.id]);
 
     const reloadProjectData = async () => {
         setProjectData(undefined);
@@ -76,35 +73,48 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
     
     const renderInteractiveRow = (association: ProjectAssociationDetail, ref: RefObject<HTMLFormElement>) => {
         return (
-            <Form onSubmit={onExistingAssociationSubmit} ref={ref}>
-                <Form.Row>
-                    <input type="hidden" name="id" value={association.id}/>
+            <Form onSubmit={onExistingAssociationSubmit} ref={ref} key={association.id} className='mb-2'>    
+                <Row>
+                    <Col lg='5' sm='12'>
+                        <div className='pt-2'>{association.email}</div>
+                    </Col>
+                    <Col lg='5' sm='6'>
+                        <input type="hidden" name="id" value={association.id}/>
+                        <Form.Control as="select" name="type" defaultValue={association.type}>
+                            {associationTypeOptions}
+                        </Form.Control>                
+                    </Col>
+                    <Col lg='2' sm='6'>
+                        <ButtonGroup>
+                            <Button variant='success' type='submit'><Check/></Button>
+                            <Button variant='light' type='button' onClick={() => {
+                                associationMap.get(association.id)!.formRef!.current!.reset();
+                                updateEntryEditing(association.id, false);
 
-                    <Form.Control as="select" name="type" defaultValue={association.type}>
-                        {associationTypeOptions}
-                    </Form.Control>
-
-                    <ButtonGroup>
-                        <Button size='sm' className='btn-light' type='submit'><Check/></Button>
-                        <Button size='sm' className='btn-light' type='button' onClick={() => {
-                            associationMap.get(association.id)!.formRef!.current!.reset();
-                            updateEntryEditing(association.id, false);
-
-                        }}><X/></Button>
-                    </ButtonGroup>
-                </Form.Row>
-            </Form>)
+                            }}><X/></Button>
+                        </ButtonGroup>
+                    </Col>
+                </Row>
+            </Form>);
     };
 
     const renderReadonlyRow = (association: ProjectAssociationDetail, canUpdate: boolean) => {
         return (
-            <div>
-                <div>{association.type}</div> 
-                {canUpdate ? <ButtonGroup>
-                    <button type="button" onClick={() => updateEntryEditing(association.id, true)}><PencilSquare/></button>
-                    <button type="button" onClick={() => onClickDeleteAssociation(association.id)}><TrashFill/></button>
-                </ButtonGroup>  : ""}
-            </div>)
+            <Row key={association.id} className='mb-2'>
+                <Col lg='5' sm='12'>
+                    <div className='pt-2'>{association.email}</div>
+                </Col>
+                <Col lg='5' sm='6'>    
+                    <div className='pt-2'>{association.type}</div>            
+                </Col>
+                <Col lg='2' sm='6'>
+                    {canUpdate ? (
+                        <ButtonGroup>
+                            <Button type="button" variant='light' onClick={() => updateEntryEditing(association.id, true)}><Pencil/></Button>
+                            <Button type="button" variant='danger' onClick={() => onClickDeleteAssociation(association.id, association.email)}><Trash/></Button>
+                        </ButtonGroup>) : ''}
+                </Col>
+            </Row>)
     };
 
     const onExistingAssociationSubmit = (e: React.FormEvent) => {
@@ -122,8 +132,30 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
         });
     }
 
+    const validateNewShareEmail = (e: React.FocusEvent<HTMLInputElement>) => {
+        const element = e.target as HTMLInputElement
+        const emailValue = element.value;
+        const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+
+        if (!emailPattern.test(emailValue)) {
+            setNewShareError('Please enter a valid email.');
+            return;
+        }
+        
+        if (projectData!.associations.find(a => a.email === emailValue)) {
+            setNewShareError('Please enter an email address that has not already been shared.');
+            return;
+        }
+        
+        setNewShareError(undefined);
+    }
+
     const onNewAssociationSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (newShareEmailError !== undefined) {
+            return;
+        }
 
         const formData = new FormData(e.target as HTMLFormElement);
         const type = formData.get('type') as string as AssociationType;
@@ -138,7 +170,11 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
         });
     }
 
-    const onClickDeleteAssociation = (id: string) => {
+    const onClickDeleteAssociation = (id: string, email: string) => {
+        if (!window.confirm(`Are you sure you want to stop sharing this project with ${email}`)) {
+            return;
+        }
+
         deleteProjectAssociation({
             id: id
         }).then(success => {
@@ -159,7 +195,7 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
             return (<div>This project is not shared with anyone.</div>);
         }
 
-        return otherAssociations.map(a => {
+        return otherAssociations.map((a, i) => {
             const associationMapEntry = associationMap.get(a.id)!;
             if (associationMapEntry.formRef === undefined) {
                 associationMapEntry.formRef = createRef<HTMLFormElement>();
@@ -167,16 +203,10 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
             }
             
             const canUpdate = hasUpdateRole && a.type !== AssociationType.Owner;
-            return (
-                <Row>
-                    <Col>
-                        <Form.Label>{a.email}</Form.Label>
-                    </Col>
-                    <Col>
-                        {canUpdate && associationMap.get(a.id)!.editing ? renderInteractiveRow(a, associationMapEntry.formRef) : renderReadonlyRow(a, canUpdate)}
-                    </Col>
-                </Row>
-            );
+            return (<>
+                {canUpdate && associationMap.get(a.id)!.editing ? renderInteractiveRow(a, associationMapEntry.formRef) : renderReadonlyRow(a, canUpdate)}
+                {i < otherAssociations.length - 1 ? <hr/> : ""}
+            </>);
         });
     };
 
@@ -187,7 +217,17 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
                     <Col>
                         <Form.Group>
                             <Form.Label>User Email</Form.Label>
-                            <Form.Control type="email" name="email" placeholder="Enter User Email" required={true}/>
+                            <Form.Control 
+                                type="email" 
+                                name="email" 
+                                placeholder="Enter User Email" 
+                                required={true} 
+                                isInvalid={newShareEmailError !== undefined} 
+                                onBlur={validateNewShareEmail}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {newShareEmailError}
+                            </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
                     <Col>

@@ -1,4 +1,4 @@
-import { ProjectDetails, ProjectCreate as ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
+import { ProjectDetails, ProjectCreate, ProjectGrid, ProjectTaskOrder } from "../../models/project";
 import { IProjectService } from "../interface/iproject-service";
 import { StatusCreate } from "../../models/status";
 import { TaskCreate, TaskUpdate } from "../../models/task";

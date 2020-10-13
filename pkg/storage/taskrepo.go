@@ -57,7 +57,7 @@ func (r *TaskRepository) Find(taskID string, userID string) (*models.Task, error
 	return models.Tasks(
 		qm.LeftOuterJoin("task_statuses s ON s.id = tasks.task_status_id"),
 		qm.LeftOuterJoin("project_associations pa ON pa.project_id = s.project_id"),
-		qm.Where("tasks.id = ? AND pa.email = ?", actingUser.Email, userID),
+		qm.Where("tasks.id = ? AND pa.email = ?", taskID, actingUser.Email),
 	).One(r.ctx, r.db)
 }
 

@@ -5,7 +5,7 @@ import { CardHeader } from './cardheader';
 import { TaskRead } from '../../../../../../models/task';
 import { userNameAsInitials } from '../../../../../../services/implementation/stringhelpers';
 import classNames from 'classnames';
-import { formatHMSDuration, formatHrDuration, formatReadibleDuration } from '../../../../../../constants';
+import { formatHMSDuration, formatReadibleDuration } from '../../../../../../constants';
 
 type CardProps = {
     task: TaskRead
