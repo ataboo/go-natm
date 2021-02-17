@@ -121,12 +121,12 @@ export const ProjectList = ({currentUser}: ProjectListProps) => {
     }
     
     return (<Container>
-        <Row>
-            <Col className='mb-3'>Start a new project or share manage an existing one.</Col>
-        </Row>
-        <Card>
+        <Card className="projectlist-card">
             <Card.Header>Go NATM Projects</Card.Header>
             <Card.Body>
+            <Col className='mb-3'>Start a new project or share and manage an existing one.</Col>
+        
+
             {renderProjects(projects)}
             <ModalForm
                 focusElement={nameInput}

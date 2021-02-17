@@ -17,10 +17,6 @@ func registerTaskRoutes(e *gin.RouterGroup) {
 	g.POST("/update", handleUpdateTask)
 	g.POST("/startLoggingWork", handleStartLoggingWork)
 	g.POST("/stopLoggingWork", handleStopLoggingWork)
-	g.GET("/:taskID/comments", handleGetComments)
-	g.POST("/comments", handleCreateComment)
-	g.POST("/comments/delete", handleDeleteComment)
-	g.POST("/comments/update", handleUpdateComment)
 }
 
 func handleGetTask(ctx *gin.Context) {
@@ -141,76 +137,14 @@ func handleStopLoggingWork(ctx *gin.Context) {
 	ctx.Status(200)
 }
 
-func handleGetComments(ctx *gin.Context) {
+func handleCurrentLoggedTask(ctx *gin.Context) {
 	userID := data.MustGetActingUserID(ctx)
-	taskID, ok := ctx.Params.Get("taskID")
-	if !ok {
-		ctx.AbortWithStatus(http.StatusNotFound)
-		return
-	}
 
-	comments, err := taskRepo.GetComments(userID, taskID)
+	task, err := taskRepo.GetWorkingTask(userID)
 	if err != nil {
 		handleErrorWithStatus(err, ctx)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, comments)
-}
-
-func handleCreateComment(ctx *gin.Context) {
-	userID := data.MustGetActingUserID(ctx)
-	createData := data.CommentCreate{}
-	err := ctx.BindJSON(&createData)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	commentVM, err := taskRepo.AddComment(userID, &createData)
-	if err != nil {
-		handleErrorWithStatus(err, ctx)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, commentVM)
-}
-
-func handleUpdateComment(ctx *gin.Context) {
-	userID := data.MustGetActingUserID(ctx)
-	updateData := data.CommentUpdate{}
-	err := ctx.BindJSON(&updateData)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	outputData, err := taskRepo.UpdateComment(userID, &updateData)
-	if err != nil {
-		handleErrorWithStatus(err, ctx)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, outputData)
-}
-
-func handleDeleteComment(ctx *gin.Context) {
-	userID := data.MustGetActingUserID(ctx)
-	deleteData := struct {
-		CommentID string `json:"commentID"`
-	}{}
-
-	err := ctx.BindJSON(&deleteData)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	err = taskRepo.DeleteComment(userID, deleteData.CommentID)
-	if err != nil {
-		handleErrorWithStatus(err, ctx)
-		return
-	}
-
-	ctx.Status(http.StatusOK)
+	ctx.JSON(200, task)
 }

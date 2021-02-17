@@ -34,6 +34,7 @@ func RegisterRoutes(
 	registerStatusRoutes(e)
 	registerTaskRoutes(e)
 	registerProjectAssociationRoutes(e)
+	registerTaskCommentRoutes(e)
 }
 
 func handleErrorWithStatus(err error, c *gin.Context) {

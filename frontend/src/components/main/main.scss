@@ -1,3 +1,12 @@
 .main-body {
-    margin: 1rem 3rem;
+    margin: 0 3rem;
+    padding-top: 1rem;
+}
+
+.main-background {
+    height: 90vh;
+    background-image: url('https://i.pinimg.com/originals/04/ef/5e/04ef5e1743f2123165f573616c533885.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }

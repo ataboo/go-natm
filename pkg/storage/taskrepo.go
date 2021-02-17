@@ -213,6 +213,44 @@ func (r *TaskRepository) StopLoggingWork(userID string) error {
 	return nil
 }
 
+func (r *TaskRepository) GetWorkingTask(userID string) (*data.TaskGrid, error) {
+	openWorkLogs, err := models.WorkLogs(
+		qm.Where("work_logs.user_id = ? AND work_logs.end_time IS NULL", userID),
+		qm.With("Task.TaskStatus.Project"),
+	).All(r.ctx, r.db)
+	if err != nil {
+		return nil, &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+	}
+
+	if len(openWorkLogs) > 0 {
+		task := openWorkLogs[0].R.Task
+
+		totalSeconds := int64(0)
+		for _, log := range task.R.WorkLogs {
+			if log.EndTime.Valid {
+				totalSeconds += int64(log.EndTime.Time.Sub(log.StartTime).Seconds())
+			} else {
+				totalSeconds += int64(time.Now().Sub(log.StartTime).Seconds())
+			}
+		}
+
+		return &data.TaskGrid{
+			ID:          task.ID,
+			Identifier:  task.R.TaskStatus.R.Project.Abbreviation + "-" + strconv.Itoa(task.Number),
+			Title:       task.Title,
+			Description: task.Description,
+			StatusID:    task.TaskStatusID,
+			Type:        task.TaskType,
+			Timing: &data.TimingGrid{
+				Estimate: task.Estimate,
+				Current:  totalSeconds,
+			},
+		}, nil
+	}
+
+	return nil, nil
+}
+
 func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCreate) (*data.CommentRead, error) {
 	_, err := r.Find(commentCreate.TaskID, userID)
 	if err != nil {

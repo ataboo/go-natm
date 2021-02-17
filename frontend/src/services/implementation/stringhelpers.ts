@@ -11,12 +11,14 @@ export const userNameAsInitials = (user: User): string => {
 export const colorForTaskTag = (task: TaskRead): string => {
     switch (task.type) {
         case TaskType.Admin:
-            return "#00ff0088"
+            return "#85e8a3"
         case TaskType.Problem:
-            return "#ff000088";
+            return "#ffd09f";
         case TaskType.Task:
-            return "#0000ff88";
+            return "#b6e4ff";
         default:
             throw new Error("Not supported." + task.type);
+
+            // 155, 199, 255
     }
 }

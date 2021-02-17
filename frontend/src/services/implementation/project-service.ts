@@ -9,14 +9,11 @@ import { ProjectAssociationCreate, ProjectAssociationDelete, ProjectAssociationU
 export default class ProjectService implements IProjectService {
     client: AxiosInstance
     hostUri: string;
-    activeTaskId: string;
 
     constructor() {
         this.client = axios.create({
             withCredentials: true,
         });
-
-        this.activeTaskId = "";
 
         this.hostUri = "http://localhost:8080/api/v1/";
     }
@@ -54,8 +51,6 @@ export default class ProjectService implements IProjectService {
     async startLoggingWork(id: string): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}task/startLoggingWork`, JSON.stringify({ task_id: id }));
         if (response.status === 200) {
-            this.activeTaskId = id;
-
             return true;
         }
  
@@ -65,7 +60,6 @@ export default class ProjectService implements IProjectService {
     async stopLoggingWork(): Promise<boolean> {
         const response = await this.client.post(`${this.hostUri}task/stopLoggingWork`);
         if (response.status === 200) {
-            this.activeTaskId = "";
             return true;
         }
 
@@ -172,25 +166,25 @@ export default class ProjectService implements IProjectService {
     }
 
     async getComments(taskID: string): Promise<CommentRead[]> {
-        var response = await this.client.get(`${this.hostUri}task/${taskID}/comment`);
+        var response = await this.client.get(`${this.hostUri}taskcomment/${taskID}`);
 
         return response.data as CommentRead[];
     }
 
     async addComment(createData: CommentCreate): Promise<CommentRead> {
-        var response = await this.client.post(`${this.hostUri}task/comment`, JSON.stringify(createData));
+        var response = await this.client.post(`${this.hostUri}taskcomment/create`, JSON.stringify(createData));
 
         return response.data as CommentRead;
     }
 
     async deleteComment(commentID: string): Promise<boolean> {
-        var response = await this.client.post(`${this.hostUri}task/comment/delete`, JSON.stringify({commentID: commentID}));
+        var response = await this.client.post(`${this.hostUri}taskcomment/delete`, JSON.stringify({commentID: commentID}));
 
         return response.status === 200;
     }
 
     async updateComment(data: CommentUpdate): Promise<CommentRead> {
-        return (await this.client.post(`${this.hostUri}task/comment/update`, JSON.stringify(data))).data as CommentRead;
+        return (await this.client.post(`${this.hostUri}taskcomment/update`, JSON.stringify(data))).data as CommentRead;
     }
 
     async updateProjectAssociation(data: ProjectAssociationUpdate): Promise<boolean> {

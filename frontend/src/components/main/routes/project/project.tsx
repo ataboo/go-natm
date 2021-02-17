@@ -11,16 +11,16 @@ import { TaskUpdate } from '../../../../models/task';
 import { CommentCreate, CommentRead, CommentUpdate } from '../../../../models/comment';
 import ProjectService from '../../../../services/implementation/project-service';
 import { User } from '../../../../models/user';
+import { IMainActions } from '../../imainactions';
 
 interface IProjectState {
   projectData: ProjectModel;
   draggedCardId: string;
-  activeTaskId?: string;
 }
 
 type ProjectProps ={
   id: string,
-  currentUser: User
+  mainActions: IMainActions
 };
 
 export class Project extends Component<ProjectProps, IProjectState> {
@@ -33,7 +33,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
     this.setState({
       draggedCardId: "",
       projectData: projectData,
-      activeTaskId: projectData.workingTaskID,
     });
   }
 
@@ -59,43 +58,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
     };
   };
 
-  startLoggingWork() {
-    return (id: string) => {
-      const projectService: IProjectService = this.context.projectService;
-      projectService.startLoggingWork(id)
-        .then(success => {
-          if (!success) {
-            console.error("failed to activate task");
-            return;
-          }
-          this.setState({
-            projectData: this.state.projectData,
-            draggedCardId: this.state.draggedCardId,
-            activeTaskId: id
-          })
-        })
-    }
-  }
-
-  stopLoggingWork() {
-    return () => {
-      const projectService: IProjectService = this.context.projectService;
-      projectService.stopLoggingWork()
-        .then(success => {
-          if (!success) {
-            console.error("failed to stop work");
-            return;
-          }
-
-          this.setState({
-            projectData: this.state.projectData,
-            draggedCardId: this.state.draggedCardId,
-            activeTaskId: undefined
-          })
-        });
-    }
-  }
-
   addStatus() {
     return (createData: StatusCreate) => {
       const projectService: IProjectService = this.context.projectService;
@@ -108,7 +70,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const newData = await projectService.getProject(this.props.id);
 
         this.setState({
-          activeTaskId: newData.workingTaskID,
           draggedCardId: this.state.draggedCardId,
           projectData: newData,
         });
@@ -134,7 +95,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
       setDraggedCardId: (cardId: string) => this.setState({
         projectData: this.state.projectData,
         draggedCardId: cardId,
-        activeTaskId: this.state.activeTaskId
       }),
       swapCards: this.moveCards(),
       saveTaskOrder: () => this.context.projectService.saveTaskOrder(this.state.projectData),
@@ -145,7 +105,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const success = await this.context.projectService.createTask(createData);
         if (success) {
           this.setState({
-            activeTaskId: this.state.activeTaskId,
             draggedCardId: this.state.draggedCardId,
             projectData: await this.context.projectService.getProject(this.state.projectData.id)
           })
@@ -153,14 +112,13 @@ export class Project extends Component<ProjectProps, IProjectState> {
 
         return success;
       },
-      startLoggingWork: this.startLoggingWork(),
-      stopLoggingWork: this.stopLoggingWork(),
-      getActiveTaskId: () => this.state.activeTaskId,
+      startLoggingWork: this.props.mainActions.startLoggingTask,
+      stopLoggingWork: this.props.mainActions.stopLoggingTask,
+      getActiveTaskId: () => this.props.mainActions.activeTaskId,
       archiveStatus: async(statusId: string) => {
         const success = await this.context.projectService.archiveStatus(statusId);
         if (success) {
           this.setState({
-            activeTaskId: this.state.activeTaskId,
             draggedCardId: this.state.draggedCardId,
             projectData: await this.context.projectService.getProject(this.state.projectData.id)
           })
@@ -172,7 +130,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const success = await this.context.projectService.archiveTask(taskId);
         if (success) {
           this.setState({
-            activeTaskId: this.state.activeTaskId,
             draggedCardId: this.state.draggedCardId,
             projectData: await this.context.projectService.getProject(this.state.projectData.id)
           });
@@ -184,7 +141,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const success = await this.context.projectService.updateTask(updateData);
         if (success) {
           this.setState({
-            activeTaskId: this.state.activeTaskId,
             draggedCardId: this.state.draggedCardId,
             projectData: await this.context.projectService.getProject(this.state.projectData.id)
           });
@@ -196,7 +152,6 @@ export class Project extends Component<ProjectProps, IProjectState> {
         const success = await this.context.projectService.stepStatusOrdinal(statusID, step);
         if (success) {
           this.setState({
-            activeTaskId: this.state.activeTaskId,
             draggedCardId: this.state.draggedCardId,
             projectData: await this.context.projectService.getProject(this.state.projectData.id)
           });
@@ -224,7 +179,7 @@ export class Project extends Component<ProjectProps, IProjectState> {
 
         return await projService.updateComment(data);
       },
-      getCurrentUser: (): User => this.props.currentUser,
+      getCurrentUser: (): User => this.props.mainActions.currentUser!,
     }
 
     return this.state.projectData.statuses.sort((a, b) => a.ordinal - b.ordinal).map((status, i) => (<Column 
@@ -237,8 +192,8 @@ export class Project extends Component<ProjectProps, IProjectState> {
   }
 
   render() {
-    return (<div className="project">
-              <div className="col-container">
+    return (<div className="project container-fluid">
+              <div className="col-container row text-center">
                 {this.renderColumns()}
                 <AddStatus projectId={this.props.id} createStatus={this.addStatus()}/>
               </div>

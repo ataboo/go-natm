@@ -21,3 +21,7 @@ type CommentUpdate struct {
 	Message string `json:"message"`
 	TaskID  string `json:"taskId"`
 }
+
+type CommentDelete struct {
+	CommentID string `json:"commentID"`
+}

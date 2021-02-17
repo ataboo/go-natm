@@ -1,5 +1,12 @@
+// .col-container {
+//   display: flex;
+//   flex-direction: row;
+//   justify-content: flex-start;
+// }
+
 .col-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  display:block;
+  overflow-x:auto;
+  white-space:nowrap;
+  flex-wrap: nowrap !important;
 }

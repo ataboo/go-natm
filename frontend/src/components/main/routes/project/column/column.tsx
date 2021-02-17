@@ -63,7 +63,7 @@ export function Column({tasks, status, cardActions}: ColumnProps) {
     }
 
     return (
-    <div className="drag-column">
+    <div className="drag-column col-lg-2">
         <div className="column-header-group">
             <div className="column-header-text">{status.name}</div>
             <Dropdown>

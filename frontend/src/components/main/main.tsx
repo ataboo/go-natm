@@ -8,14 +8,19 @@ import { ServiceContext, defaultServiceContext } from "../../context/service";
 import { User } from "../../models/user";
 import { IAuthService } from "../../services/interface/iauthservice";
 import { AuthService } from "../../services/implementation/authservice";
+import { TaskRead } from "../../models/task";
+import { IMainActions } from "./imainactions";
+import { IProjectService } from "../../services/interface/iproject-service";
 
 
 interface IMainState {
-    user: User|null
+    currentUser: User|null;
+    activeTaskId?: string;
 }
 
 class Main extends Component<any, IMainState> {
     authService: IAuthService;
+    static contextType = ServiceContext;
 
     constructor(props: any) {
         super(props);
@@ -23,16 +28,15 @@ class Main extends Component<any, IMainState> {
         this.authService = new AuthService();
 
         this.state = {
-            user: null
+            currentUser: null,
+            activeTaskId: undefined
         };
     }
 
     async tryAuthenticate(): Promise<User|null> {
         const user = await this.authService.tryAuthenticate();
 
-        this.setState({
-            user: user
-        });
+        this.setState(oldState => ({...oldState, currentUser: user}));
 
         return user;
     }
@@ -41,25 +45,70 @@ class Main extends Component<any, IMainState> {
         return async () => {
             const success = await this.authService.logout();
             this.setState({
-                user: null
+                currentUser: null
             });
 
             return success;
         };
     }
 
+    startTimingTask() {
+        return (id: string) => {
+            const projectService: IProjectService = this.context.projectService;
+            projectService.startLoggingWork(id)
+              .then(success => {
+                if (!success) {
+                  console.error("failed to activate task");
+                  return;
+                }
+                this.setState(oldState => ({
+                    currentUser: oldState.currentUser,
+                    activeTaskId: id
+                }))
+              })
+          }
+    }
+
+    stopTimingTask() {
+        return () => {
+            const projectService: IProjectService = this.context.projectService;
+            projectService.stopLoggingWork()
+            .then(success => {
+                if (!success) {
+                console.error("failed to stop work");
+                return;
+                }
+    
+                this.setState(oldState => ({
+                    currentUser: oldState.currentUser,
+                    activeTaskId: undefined
+                }))
+            });
+        }
+    }
+
+    refreshTimedTask() {
+        console.warn("todo!");
+    }
+
     render() {
-        return (<AuthContext.Provider value={{
-                    currentUser: this.state.user,
-                    logout: this.logout()
-                }}>
-                    <ServiceContext.Provider value={defaultServiceContext()} >
-                        <Header/>
+        const mainActions: IMainActions = {
+            startLoggingTask: this.startTimingTask(),
+            stopLoggingTask: this.stopTimingTask(),
+            currentUser: this.state.currentUser,
+            activeTaskId: this.state.activeTaskId,
+            logout: this.logout(),
+            refreshTimedTask: this.refreshTimedTask
+        }
+
+        return (<>
+                    <Header mainActions={mainActions}/>
+                    <div className="main-background">
                         <div className="main-body">
-                            {this.state.user != null ? <Routes currentUser={this.state.user} /> : <LoginPage/>}
+                            {this.state.currentUser != null ? <Routes mainActions={mainActions} /> : <LoginPage/>}
                         </div>
-                    </ServiceContext.Provider>
-                </AuthContext.Provider>);
+                    </div>
+                </>);
     }
 
     async componentDidMount() {
