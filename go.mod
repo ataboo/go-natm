@@ -3,6 +3,7 @@ module github.com/ataboo/go-natm
 go 1.14
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/friendsofgo/errors v0.9.2
 	github.com/gin-gonic/gin v1.6.3

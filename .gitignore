@@ -2,3 +2,4 @@ go-natm
 .vscode
 .env
 sqlboiler.toml
+__debug_bin

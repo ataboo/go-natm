@@ -189,23 +189,17 @@ export const ProjectShare = ({projectGridData, showShare, currentUser, loadProje
             return (<div>Loading...</div>);
         }
 
-        const otherAssociations = projectData!.associations.filter(a => a.email !== currentUser.email);
-
-        if (otherAssociations.length === 0) {
-            return (<div>This project is not shared with anyone.</div>);
-        }
-
-        return otherAssociations.map((a, i) => {
+        return projectData.associations.map((a, i) => {
             const associationMapEntry = associationMap.get(a.id)!;
             if (associationMapEntry.formRef === undefined) {
                 associationMapEntry.formRef = createRef<HTMLFormElement>();
                 updateEntryRef(a.id, associationMapEntry.formRef);
             }
             
-            const canUpdate = hasUpdateRole && a.type !== AssociationType.Owner;
+            const canUpdate = hasUpdateRole && a.type !== AssociationType.Owner && a.email !== currentUser.email;
             return (<>
                 {canUpdate && associationMap.get(a.id)!.editing ? renderInteractiveRow(a, associationMapEntry.formRef) : renderReadonlyRow(a, canUpdate)}
-                {i < otherAssociations.length - 1 ? <hr/> : ""}
+                {i < projectData.associations.length - 1 ? <hr/> : ""}
             </>);
         });
     };

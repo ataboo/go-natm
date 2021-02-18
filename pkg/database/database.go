@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/ataboo/go-natm/pkg/common"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 
@@ -31,7 +33,7 @@ func MigrateDB(db *sql.DB) error {
 		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(filepath.Join("file://", common.RootFilePath, "migrations"), "postgres", driver)
 	if err != nil {
 		return err
 	}

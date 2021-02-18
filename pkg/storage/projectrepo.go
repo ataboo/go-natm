@@ -46,12 +46,13 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 	}
 
 	return models.ProjectAssociations(
-		qm.Where("email = ? AND project_id = ?", actingUser.Email, projectID),
+		qm.InnerJoin("users ON users.id = project_associations.user_id"),
+		qm.Where("users.email = ? AND project_id = ?", actingUser.Email, projectID),
 		qm.Load("Project"),
 		qm.Load("Project.TaskStatuses.Tasks"),
 		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
 		qm.Load("Project.TaskStatuses.Tasks.Assignee"),
-		qm.Load("Project.ProjectAssociations"),
+		qm.Load("Project.ProjectAssociations", qm.OrderBy("email")),
 	).One(r.ctx, r.db)
 }
 
