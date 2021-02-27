@@ -13,9 +13,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var test_db *sql.DB
-var test_ctx context.Context
-var test_tx *sql.Tx
+var testDb *sql.DB
+var testCtx context.Context
+var testTx *sql.Tx
 
 func TestMain(m *testing.M) {
 	repo_fixturesetup()
@@ -30,25 +30,25 @@ func repo_fixturesetup() {
 		log.Fatal(err)
 	}
 
-	test_db = database.MustMigrateTestDB()
-	test_ctx = context.Background()
+	testDb = database.MustMigrateTestDB()
+	testCtx = context.Background()
 }
 
 func repo_fixtureteardown() {
-	test_db.Close()
+	testDb.Close()
 }
 
 func repo_testsetup(t *testing.T) {
-	newTx, err := test_db.BeginTx(test_ctx, &sql.TxOptions{})
+	newTx, err := testDb.BeginTx(testCtx, &sql.TxOptions{})
 	if err != nil {
 		t.Error(err)
 	}
 
-	test_tx = newTx
+	testTx = newTx
 }
 
 func repo_testteardown() {
-	test_tx.Rollback()
+	testTx.Rollback()
 }
 
 func TestUserRepoBasics(t *testing.T) {
@@ -62,7 +62,7 @@ func TestUserRepoBasics(t *testing.T) {
 		Name:   "Test User",
 	}
 
-	repo := NewUserRepository(test_db)
+	repo := NewUserRepository(testDb)
 	err := repo.Create(user)
 	if err != nil {
 		t.Error(err)
