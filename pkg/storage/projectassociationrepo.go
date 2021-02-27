@@ -26,9 +26,9 @@ func NewProjectAssociationRepository(db *sql.DB) *ProjectAssociationRepository {
 }
 
 func (r *ProjectAssociationRepository) Create(createData *data.ProjectAssociationCreate, actingUserID string) error {
-	_, err := r.assertActingUserCanChangeAssociations(actingUserID, createData.ProjectID)
-	if err != nil {
-		return err
+	association := r.getAssociationForUser(actingUserID, createData.ProjectID)
+	if association == nil || !r.associationHasWritingPermission(association) {
+		return &common.ErrorWithStatus{Code: http.StatusMethodNotAllowed}
 	}
 
 	project, err := models.Projects(qm.Where("id = ?", createData.ProjectID), qm.Load("ProjectAssociations")).One(r.ctx, r.db)
@@ -71,12 +71,8 @@ func (r *ProjectAssociationRepository) Update(updateData *data.ProjectAssociatio
 		return &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
-	actingUserAssociation, err := r.assertActingUserCanChangeAssociations(actingUserID, subjectAssociation.ProjectID)
-	if err != nil {
-		return err
-	}
-
-	if actingUserAssociation.Email == subjectAssociation.Email {
+	actingUserAssociation := r.getAssociationForUser(actingUserID, subjectAssociation.ProjectID)
+	if actingUserAssociation == nil || !r.associationHasWritingPermission(actingUserAssociation) || actingUserAssociation.Email == subjectAssociation.Email {
 		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
 	}
 
@@ -93,6 +89,10 @@ func (r *ProjectAssociationRepository) Update(updateData *data.ProjectAssociatio
 	return nil
 }
 
+func (r *ProjectAssociationRepository) associationHasWritingPermission(association *models.ProjectAssociation) bool {
+	return association.Association == models.AssociationsEnumOwner || association.Association == models.AssociationsEnumWriter
+}
+
 func (r *ProjectAssociationRepository) Delete(deleteData *data.ProjectAssociationDelete, actingUserID string) error {
 	subjectAssociation, err := models.FindProjectAssociation(r.ctx, r.db, deleteData.ID)
 	if err != nil {
@@ -103,12 +103,8 @@ func (r *ProjectAssociationRepository) Delete(deleteData *data.ProjectAssociatio
 		return &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
-	actingUserAssociation, err := r.assertActingUserCanChangeAssociations(actingUserID, subjectAssociation.ProjectID)
-	if err != nil {
-		return err
-	}
-
-	if actingUserAssociation.Email == subjectAssociation.Email {
+	actingUserAssociation := r.getAssociationForUser(actingUserID, subjectAssociation.ProjectID)
+	if actingUserAssociation == nil || !r.associationHasWritingPermission(actingUserAssociation) || actingUserAssociation.Email == subjectAssociation.Email {
 		return &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
@@ -120,23 +116,18 @@ func (r *ProjectAssociationRepository) Delete(deleteData *data.ProjectAssociatio
 	return nil
 }
 
-func (r *ProjectAssociationRepository) assertActingUserCanChangeAssociations(actingUserID string, projectID string) (*models.ProjectAssociation, error) {
+func (r *ProjectAssociationRepository) getAssociationForUser(actingUserID string, projectID string) *models.ProjectAssociation {
 	actingUser, err := models.FindUser(r.ctx, r.db, actingUserID)
 	if err != nil {
-		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
+		return nil
 	}
 
 	actingUserAssociation, err := models.ProjectAssociations(
 		qm.Where("email = ? AND project_id = ?", actingUser.Email, projectID),
 	).One(r.ctx, r.db)
 	if err != nil {
-		return nil, &common.ErrorWithStatus{Code: http.StatusForbidden}
+		return nil
 	}
 
-	// Only owners and writers can set associations
-	if actingUserAssociation.Association != models.AssociationsEnumOwner && actingUserAssociation.Association != models.AssociationsEnumWriter {
-		return actingUserAssociation, &common.ErrorWithStatus{Code: http.StatusForbidden}
-	}
-
-	return actingUserAssociation, nil
+	return actingUserAssociation
 }

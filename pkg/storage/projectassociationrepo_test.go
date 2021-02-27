@@ -10,6 +10,43 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+func _assertAssociationExists(t *testing.T, projectID string, userID string, email string, associationType string) *models.ProjectAssociation {
+	user, err := models.FindUser(testCtx, testDb, userID)
+	if err != nil {
+		t.Errorf("failed to find user with id %s", userID)
+		return nil
+	}
+
+	association, err := models.ProjectAssociations(qm.Where("project_id = ? AND email = ?", projectID, user.Email)).One(context.Background(), testDb)
+	if err != nil {
+		t.Errorf("expected project association with user_id %s and project_id %s to exist", userID, projectID)
+		return association
+	}
+
+	if association.Email != email {
+		t.Errorf("unnexpected project association email %s, %s", email, association.Email)
+	}
+
+	if association.Association != associationType {
+		t.Errorf("unnexpected association type %s, %s", associationType, association.Association)
+	}
+
+	return association
+}
+
+func _assertAssociationDoesNotExist(t *testing.T, projectID string, userID string) {
+	user, err := models.FindUser(testCtx, testDb, userID)
+	if err != nil {
+		t.Errorf("failed to find user with id %s", userID)
+		return
+	}
+
+	_, err = models.ProjectAssociations(qm.Where("project_id = ? AND email = ?", projectID, user.Email)).One(context.Background(), testDb)
+	if err == nil {
+		t.Errorf("expected project association with user_id %s and project_id %s not to exist", userID, projectID)
+	}
+}
+
 func TestProjectAssociationBasics(t *testing.T) {
 	repo_testsetup(t)
 	defer repo_testteardown()
@@ -28,13 +65,23 @@ func TestProjectAssociationBasics(t *testing.T) {
 		t.Error(err)
 	}
 
-	otherUser := &models.User{
-		Email:  "test2@email.com",
+	readerUser := &models.User{
+		Email:  "reader@email.com",
 		Active: true,
 		ID:     uuid.New().String(),
-		Name:   "Other User",
+		Name:   "Reader User",
 	}
-	if err := userRepo.Create(otherUser); err != nil {
+	if err := userRepo.Create(readerUser); err != nil {
+		t.Error(err)
+	}
+
+	writerUser := &models.User{
+		Email:  "writer@email.com",
+		Active: true,
+		ID:     uuid.New().String(),
+		Name:   "Writer User",
+	}
+	if err := userRepo.Create(writerUser); err != nil {
 		t.Error(err)
 	}
 
@@ -51,50 +98,41 @@ func TestProjectAssociationBasics(t *testing.T) {
 		t.Error(err)
 	}
 
-	ownerAssoc, err := assocRepo.assertActingUserCanChangeAssociations(owner.ID, testProj.ID)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if ownerAssoc.Association != models.AssociationsEnumOwner {
-		t.Error("unnexpected association type")
-	}
-
-	if ownerAssoc.Email != owner.Email {
-		t.Errorf("unnexpected owner email in association")
-	}
-
-	otherUserAssoc, err := assocRepo.assertActingUserCanChangeAssociations(otherUser.ID, testProj.ID)
-	if err == nil || otherUserAssoc != nil {
-		t.Error("expected error")
-	}
+	_ = _assertAssociationExists(t, testProj.ID, owner.ID, owner.Email, models.AssociationsEnumOwner)
 
 	err = assocRepo.Create(&data.ProjectAssociationCreate{
 		ProjectID: testProj.ID,
-		Email:     otherUser.Email,
+		Email:     readerUser.Email,
 		Type:      models.AssociationsEnumReader,
-	}, otherUser.ID)
+	}, readerUser.ID)
 
 	if err == nil {
-		t.Error("expected error")
+		t.Error("readerUser should not be able to create a project association")
 	}
 
-	if count, _ := models.ProjectAssociations(qm.Where("project_id = ?", testProj.ID)).Count(context.Background(), testDb); count != 1 {
-		t.Error("unnexpected assoc count")
-	}
+	_assertAssociationDoesNotExist(t, testProj.ID, readerUser.ID)
 
 	err = assocRepo.Create(&data.ProjectAssociationCreate{
 		ProjectID: testProj.ID,
-		Email:     otherUser.Email,
+		Email:     readerUser.Email,
 		Type:      models.AssociationsEnumReader,
 	}, owner.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if count, _ := models.ProjectAssociations(qm.Where("project_id = ?", testProj.ID)).Count(context.Background(), testDb); count != 2 {
-		t.Error("unnexpected association count")
+	_assertAssociationExists(t, testProj.ID, readerUser.ID, readerUser.Email, models.AssociationsEnumReader)
+
+	err = assocRepo.Create(&data.ProjectAssociationCreate{
+		ProjectID: testProj.ID,
+		Email:     writerUser.Email,
+		Type:      models.AssociationsEnumWriter,
+	}, readerUser.ID)
+	if err == nil {
+		t.Error("expected error when reader creates association")
 	}
+
+	_assertAssociationDoesNotExist(t, testProj.ID, writerUser.ID)
 
 }
 
