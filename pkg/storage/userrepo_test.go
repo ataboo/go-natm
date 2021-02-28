@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/ataboo/go-natm/pkg/database"
@@ -16,6 +17,7 @@ import (
 var testDb *sql.DB
 var testCtx context.Context
 var testTx *sql.Tx
+var testDbLock sync.Mutex
 
 func TestMain(m *testing.M) {
 	repo_fixturesetup()
@@ -25,13 +27,14 @@ func TestMain(m *testing.M) {
 }
 
 func repo_fixturesetup() {
+	testDbLock = sync.Mutex{}
+	testCtx = context.Background()
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	testDb = database.MustMigrateTestDB()
-	testCtx = context.Background()
 }
 
 func repo_fixtureteardown() {
@@ -39,7 +42,13 @@ func repo_fixtureteardown() {
 }
 
 func repo_testsetup(t *testing.T) {
-	newTx, err := testDb.BeginTx(testCtx, &sql.TxOptions{})
+	testDbLock.Lock()
+
+	// _, file, no, _ := runtime.Caller(1)
+	// users, _ := models.Users().All(testCtx, testDb)
+	// fmt.Printf("%s:%d: %d users before tx\n", file, no, len(users))
+
+	newTx, err := testDb.BeginTx(testCtx, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,7 +57,14 @@ func repo_testsetup(t *testing.T) {
 }
 
 func repo_testteardown() {
-	testTx.Rollback()
+	if err := testTx.Rollback(); err != nil {
+		log.Fatal(err)
+	}
+
+	// users, _ := models.Users().All(testCtx, testDb)
+	// fmt.Printf("%d users after rollback\n", len(users))
+
+	defer testDbLock.Unlock()
 }
 
 func TestUserRepoBasics(t *testing.T) {
@@ -62,7 +78,7 @@ func TestUserRepoBasics(t *testing.T) {
 		Name:   "Test User",
 	}
 
-	repo := NewUserRepository(testDb)
+	repo := NewUserRepository(testCtx, testTx)
 	err := repo.Create(user)
 	if err != nil {
 		t.Error(err)

@@ -15,11 +15,13 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+//StatusRepository manages Status models which are usually represented by columns.
 type StatusRepository struct {
 	db  *sql.DB
 	ctx context.Context
 }
 
+//NewStatusRepository creates a new Status Repository.
 func NewStatusRepository(db *sql.DB) *StatusRepository {
 	return &StatusRepository{
 		db:  db,
@@ -27,6 +29,7 @@ func NewStatusRepository(db *sql.DB) *StatusRepository {
 	}
 }
 
+//Archive soft-deletes a status.
 func (r *StatusRepository) Archive(statusID string, userID string) error {
 	actingUser, err := models.FindUser(r.ctx, r.db, userID)
 	if err != nil {
@@ -75,6 +78,7 @@ func (r *StatusRepository) Archive(statusID string, userID string) error {
 	return nil
 }
 
+//StepOrdinal exchanges the ordinal of a given status with the status with ordinal `step` away from it.
 func (r *StatusRepository) StepOrdinal(statusID string, userID string, step int) error {
 	actingUser, err := models.FindUser(r.ctx, r.db, userID)
 	if err != nil {
@@ -126,6 +130,7 @@ func (r *StatusRepository) StepOrdinal(statusID string, userID string, step int)
 	return nil
 }
 
+//Create creates a new status.
 func (r *StatusRepository) Create(data *data.StatusCreate, userID string) error {
 	maxOrdinal := struct {
 		MaxOrdinal sql.NullInt32 `boil:"max_ordinal" json:"max_ordinal" toml:"max_ordinal" yaml:"max_ordinal"`

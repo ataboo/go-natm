@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
@@ -13,22 +12,25 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+//ProjectAssociationRepository handle changes to project associations
 type ProjectAssociationRepository struct {
-	db  *sql.DB
+	db  boil.ContextExecutor
 	ctx context.Context
 }
 
-func NewProjectAssociationRepository(db *sql.DB) *ProjectAssociationRepository {
+//NewProjectAssociationRepository creates a new ProjectAssociationRepository
+func NewProjectAssociationRepository(db boil.ContextExecutor) *ProjectAssociationRepository {
 	return &ProjectAssociationRepository{
 		db:  db,
 		ctx: context.Background(),
 	}
 }
 
+//Create creates a new project association
 func (r *ProjectAssociationRepository) Create(createData *data.ProjectAssociationCreate, actingUserID string) error {
 	association := r.getAssociationForUser(actingUserID, createData.ProjectID)
 	if association == nil || !r.associationHasWritingPermission(association) {
-		return &common.ErrorWithStatus{Code: http.StatusMethodNotAllowed}
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
 	project, err := models.Projects(qm.Where("id = ?", createData.ProjectID), qm.Load("ProjectAssociations")).One(r.ctx, r.db)
@@ -61,6 +63,7 @@ func (r *ProjectAssociationRepository) Create(createData *data.ProjectAssociatio
 	return nil
 }
 
+//Update updates an existing project association
 func (r *ProjectAssociationRepository) Update(updateData *data.ProjectAssociationUpdate, actingUserID string) error {
 	subjectAssociation, err := models.FindProjectAssociation(r.ctx, r.db, updateData.ID)
 	if err != nil {
@@ -73,7 +76,7 @@ func (r *ProjectAssociationRepository) Update(updateData *data.ProjectAssociatio
 
 	actingUserAssociation := r.getAssociationForUser(actingUserID, subjectAssociation.ProjectID)
 	if actingUserAssociation == nil || !r.associationHasWritingPermission(actingUserAssociation) || actingUserAssociation.Email == subjectAssociation.Email {
-		return &common.ErrorWithStatus{Code: http.StatusInternalServerError}
+		return &common.ErrorWithStatus{Code: http.StatusForbidden}
 	}
 
 	if updateData.Type != models.AssociationsEnumReader && updateData.Type != models.AssociationsEnumWriter {
@@ -93,6 +96,7 @@ func (r *ProjectAssociationRepository) associationHasWritingPermission(associati
 	return association.Association == models.AssociationsEnumOwner || association.Association == models.AssociationsEnumWriter
 }
 
+//Delete deletes a project association
 func (r *ProjectAssociationRepository) Delete(deleteData *data.ProjectAssociationDelete, actingUserID string) error {
 	subjectAssociation, err := models.FindProjectAssociation(r.ctx, r.db, deleteData.ID)
 	if err != nil {

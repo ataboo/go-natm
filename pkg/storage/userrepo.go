@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/ataboo/go-natm/pkg/models"
 	"github.com/google/uuid"
@@ -10,18 +9,20 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-func NewUserRepository(db *sql.DB) *UserRepository {
+//UserRepository handles actions involving User models.
+type UserRepository struct {
+	db  boil.ContextExecutor
+	ctx context.Context
+}
+
+//NewUserRepository creates a new UserRepository.
+func NewUserRepository(ctx context.Context, db boil.ContextExecutor) *UserRepository {
 	repo := UserRepository{
 		db:  db,
-		ctx: context.Background(),
+		ctx: ctx,
 	}
 
 	return &repo
-}
-
-type UserRepository struct {
-	db  *sql.DB
-	ctx context.Context
 }
 
 func (r *UserRepository) Find(id string) (*models.User, error) {

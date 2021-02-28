@@ -21,6 +21,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+//TaskRepository handles actions involving the Task model.
 type TaskRepository struct {
 	db       *sql.DB
 	ctx      context.Context
@@ -28,6 +29,7 @@ type TaskRepository struct {
 	hourExpr *regexp.Regexp
 }
 
+//NewTaskRepository creates a new TaskRepository
 func NewTaskRepository(db *sql.DB) *TaskRepository {
 
 	dayExpr, _ := regexp.Compile(`(\d*\.?\d*)[dD]`)
@@ -41,6 +43,7 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 	}
 }
 
+//List gets the tasks in a given project.
 func (r *TaskRepository) List(projectID string) (models.TaskSlice, error) {
 	return models.Tasks(
 		qm.Where("project_id = ?", projectID),
@@ -48,6 +51,7 @@ func (r *TaskRepository) List(projectID string) (models.TaskSlice, error) {
 	).All(r.ctx, r.db)
 }
 
+//Find gets a specific task by ID.
 func (r *TaskRepository) Find(taskID string, userID string) (*models.Task, error) {
 	actingUser, err := models.FindUser(r.ctx, r.db, userID)
 	if err != nil {
@@ -61,6 +65,7 @@ func (r *TaskRepository) Find(taskID string, userID string) (*models.Task, error
 	).One(r.ctx, r.db)
 }
 
+//Archive soft-deletes a task.
 func (r *TaskRepository) Archive(taskID string, userID string) error {
 	taskModel, err := r.Find(taskID, userID)
 	if err != nil {
@@ -77,7 +82,8 @@ func (r *TaskRepository) Archive(taskID string, userID string) error {
 	return nil
 }
 
-func (r *TaskRepository) Create(taskData *data.TaskCreate, ownerID string) error {
+//Create creates a new task.
+func (r *TaskRepository) Create(taskData *data.TaskCreate, actingUserID string) error {
 	statusModel, err := models.FindTaskStatus(r.ctx, r.db, taskData.StatusID)
 	if err != nil {
 		return &common.ErrorWithStatus{Code: http.StatusNotFound}
@@ -125,6 +131,7 @@ func (r *TaskRepository) Create(taskData *data.TaskCreate, ownerID string) error
 	return taskModel.Insert(r.ctx, r.db, boil.Infer())
 }
 
+//Update changes a given task.
 func (r *TaskRepository) Update(taskData *data.TaskUpdate, userID string) error {
 	var assigneeID = ""
 	user, err := models.Users(qm.Where("email = ?", taskData.AssigneeEmail)).One(r.ctx, r.db)
@@ -135,6 +142,9 @@ func (r *TaskRepository) Update(taskData *data.TaskUpdate, userID string) error 
 	estimateMins, ok := r.parseDuration(taskData.Estimate)
 
 	task, err := models.FindTask(r.ctx, r.db, taskData.ID)
+	if err != nil {
+		return &common.ErrorWithStatus{Code: http.StatusNotFound}
+	}
 	task.AssigneeID = null.NewString(assigneeID, assigneeID != "")
 	task.Description = taskData.Description
 	task.Estimate = null.NewInt(estimateMins*60, ok)
@@ -171,6 +181,7 @@ func (r *TaskRepository) parseDuration(input string) (duration int, ok bool) {
 	return 0, false
 }
 
+//StartLoggingWork begins logging work for a given user.
 func (r *TaskRepository) StartLoggingWork(userID string, taskID string) error {
 	task, err := r.Find(taskID, userID)
 	if err != nil || task == nil {
@@ -197,6 +208,7 @@ func (r *TaskRepository) StartLoggingWork(userID string, taskID string) error {
 	return nil
 }
 
+//StopLoggingWork stops logging work for a given user.
 func (r *TaskRepository) StopLoggingWork(userID string) error {
 	openWorkLogs, err := models.WorkLogs(
 		qm.Where("work_logs.user_id = ? AND work_logs.end_time IS NULL", userID),
@@ -213,6 +225,7 @@ func (r *TaskRepository) StopLoggingWork(userID string) error {
 	return nil
 }
 
+//GetWorkingTask gets the task the the user is logging work on.
 func (r *TaskRepository) GetWorkingTask(userID string) (*data.TaskGrid, error) {
 	openWorkLogs, err := models.WorkLogs(
 		qm.Where("work_logs.user_id = ? AND work_logs.end_time IS NULL", userID),
@@ -230,7 +243,7 @@ func (r *TaskRepository) GetWorkingTask(userID string) (*data.TaskGrid, error) {
 			if log.EndTime.Valid {
 				totalSeconds += int64(log.EndTime.Time.Sub(log.StartTime).Seconds())
 			} else {
-				totalSeconds += int64(time.Now().Sub(log.StartTime).Seconds())
+				totalSeconds += int64(time.Since(log.StartTime).Seconds())
 			}
 		}
 
@@ -251,6 +264,7 @@ func (r *TaskRepository) GetWorkingTask(userID string) (*data.TaskGrid, error) {
 	return nil, nil
 }
 
+//AddComment adds a comment to a task.
 func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCreate) (*data.CommentRead, error) {
 	_, err := r.Find(commentCreate.TaskID, userID)
 	if err != nil {
@@ -290,6 +304,7 @@ func (r *TaskRepository) AddComment(userID string, commentCreate *data.CommentCr
 	return commentVM, nil
 }
 
+//UpdateComment updates a comment.
 func (r *TaskRepository) UpdateComment(userID string, updateData *data.CommentUpdate) (*data.CommentRead, error) {
 	comment, err := models.Comments(qm.Where("id = ?", updateData.ID), qm.Load("User")).One(r.ctx, r.db)
 	if err != nil {
@@ -322,6 +337,7 @@ func (r *TaskRepository) UpdateComment(userID string, updateData *data.CommentUp
 	return outputVM, nil
 }
 
+//GetComments gets the comments tied to a task.
 func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.CommentRead, error) {
 	task, err := r.Find(taskID, userID)
 	if err != nil || task == nil {
@@ -335,7 +351,7 @@ func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.Comme
 
 	commentVMs := make([]data.CommentRead, len(comments))
 	for i, c := range comments {
-		commentVMs[i] = *&data.CommentRead{
+		commentVMs[i] = data.CommentRead{
 			Author: &data.UserRead{
 				Email: c.R.User.Email,
 				ID:    c.R.User.ID,
@@ -352,6 +368,7 @@ func (r *TaskRepository) GetComments(userID string, taskID string) ([]data.Comme
 	return commentVMs, nil
 }
 
+//DeleteComment deletes a comment.
 func (r *TaskRepository) DeleteComment(userID string, commentID string) error {
 	comment, err := models.Comments(qm.Where("id = ?", commentID)).One(r.ctx, r.db)
 	if err != nil {

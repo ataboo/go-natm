@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 
 	"github.com/ataboo/go-natm/pkg/api/data"
@@ -13,18 +12,21 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
+//ProjectRepository handles changes to Project models.
 type ProjectRepository struct {
-	db  *sql.DB
+	db  boil.ContextExecutor
 	ctx context.Context
 }
 
-func NewProjectRepository(db *sql.DB) *ProjectRepository {
+//NewProjectRepository creates a new project repository
+func NewProjectRepository(db boil.ContextExecutor) *ProjectRepository {
 	return &ProjectRepository{
 		db:  db,
 		ctx: context.Background(),
 	}
 }
 
+//ListAssociated lists all project associations for the projects that the user is associated with.
 func (r *ProjectRepository) ListAssociated(userID string) (models.ProjectAssociationSlice, error) {
 	actingUser, err := models.FindUser(r.ctx, r.db, userID)
 	if err != nil {
@@ -33,12 +35,13 @@ func (r *ProjectRepository) ListAssociated(userID string) (models.ProjectAssocia
 
 	qms := []qm.QueryMod{
 		qm.Where("email = ?", actingUser.Email),
-		qm.Load("Project"),
+		qm.Load("Project", qm.Select("name")),
 	}
 
 	return models.ProjectAssociations(qms...).All(r.ctx, r.db)
 }
 
+//Find finds a project by id.
 func (r *ProjectRepository) Find(projectID string, userID string) (*models.ProjectAssociation, error) {
 	actingUser, err := models.FindUser(r.ctx, r.db, userID)
 	if err != nil {
@@ -46,8 +49,7 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 	}
 
 	return models.ProjectAssociations(
-		qm.InnerJoin("users ON users.id = project_associations.user_id"),
-		qm.Where("users.email = ? AND project_id = ?", actingUser.Email, projectID),
+		qm.Where("email = ? AND project_id = ?", actingUser.Email, projectID),
 		qm.Load("Project"),
 		qm.Load("Project.TaskStatuses.Tasks"),
 		qm.Load("Project.TaskStatuses.Tasks.WorkLogs"),
@@ -56,10 +58,15 @@ func (r *ProjectRepository) Find(projectID string, userID string) (*models.Proje
 	).One(r.ctx, r.db)
 }
 
-func (r *ProjectRepository) Create(projectData *data.ProjectCreate, actingUserId string) error {
-	actingUser, err := models.FindUser(r.ctx, r.db, actingUserId)
+//Create creates a new project owned by the acting user.
+func (r *ProjectRepository) Create(projectData *data.ProjectCreate, actingUserID string) error {
+	actingUser, err := models.FindUser(r.ctx, r.db, actingUserID)
 	if err != nil {
 		return &common.ErrorWithStatus{Code: http.StatusForbidden}
+	}
+
+	if projectData.Abbreviation == "" || projectData.Description == "" || projectData.Name == "" {
+		return &common.ErrorWithStatus{Code: http.StatusUnprocessableEntity}
 	}
 
 	proj := models.Project{
@@ -85,6 +92,7 @@ func (r *ProjectRepository) Create(projectData *data.ProjectCreate, actingUserId
 	return projAssociation.Insert(r.ctx, r.db, boil.Infer())
 }
 
+//Update updates a projects.
 func (r *ProjectRepository) Update(projectData *data.ProjectUpdate) error {
 	proj := models.Project{
 		ID:           projectData.ID,
@@ -99,6 +107,7 @@ func (r *ProjectRepository) Update(projectData *data.ProjectUpdate) error {
 	return err
 }
 
+//Archive soft-deletes a project.
 func (r *ProjectRepository) Archive(projectID string, userID string) error {
 	association, err := r.Find(projectID, userID)
 	if err != nil || association == nil {
@@ -130,6 +139,7 @@ func (r *ProjectRepository) Archive(projectID string, userID string) error {
 	return nil
 }
 
+//SetTaskOrder sets the order of tasks within a project.
 func (r *ProjectRepository) SetTaskOrder(taskOrder data.ProjectTaskOrder, userID string) error {
 	association, err := r.Find(taskOrder.ID, userID)
 	if err != nil || association == nil {
